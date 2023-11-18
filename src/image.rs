@@ -13,6 +13,12 @@ pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: U,
 }
 
+impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
+    pub fn get_underlying(&self) -> &U {
+        return &self.underlying;
+    }
+}
+
 impl From<Bytes> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
     fn from(bytes: Bytes) -> Self {
         Self {

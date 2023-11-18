@@ -206,6 +206,7 @@ dependencies = [
  "bytes",
  "image",
  "memmap",
+ "num-traits",
 ]
 
 [[package]]
