@@ -36,27 +36,34 @@ impl<P: Pixel> Merger<P> {
         let new_canvas_dimensions = (self.canvas.width(), self.canvas.height() * self.total_rows);
 
         // Create a new container with the capacity of the new canvas
-        let mut new_container: Vec<P::Subpixel> = Vec::with_capacity(
-            (<P as Pixel>::CHANNEL_COUNT as usize)
-                * (new_canvas_dimensions.0 * new_canvas_dimensions.1) as usize,
-        );
+        let updated_capacity = (<P as Pixel>::CHANNEL_COUNT as usize)
+            * (new_canvas_dimensions.0 * new_canvas_dimensions.1) as usize;
 
-        // Push the old container contents into the new one and fill the rest with zeroes
-        // Unfortunatley we must hold two containers in memory at once.
-        // TODO: Look into a way to do this without holding two containers in memory at once.
-        self.canvas.as_raw().iter().for_each(|pixel| {
-            new_container.push(*pixel);
-        });
-        new_container.resize_with(new_container.capacity(), Zero::zero);
+        // Steal the data from the immutable reference to the underlying container into a new vector
+        // that we can transfer to a new container.
+        let mut new_container: Vec<P::Subpixel> = Vec::with_capacity(updated_capacity);
+        unsafe {
+            new_container.set_len(updated_capacity);
+            let stolen_container_ptr = (*self.canvas).as_mut_ptr();
+            let new_container_ptr = new_container.as_mut_ptr();
+            std::ptr::copy_nonoverlapping(
+                stolen_container_ptr,
+                new_container_ptr,
+                updated_capacity,
+            );
+        }
 
-        let canvas: image::ImageBuffer<P, Vec<P::Subpixel>> = image::ImageBuffer::from_raw(
+        // Fill the new container with zeros.
+        new_container.resize(updated_capacity, P::Subpixel::zero());
+
+        // Create a new canvas with the new dimensions and the new container.
+        let new_canvas: image::ImageBuffer<P, Vec<P::Subpixel>> = image::ImageBuffer::from_raw(
             new_canvas_dimensions.0,
             new_canvas_dimensions.1,
             new_container,
         )
         .unwrap();
-
-        self.canvas = canvas;
+        self.canvas = new_canvas;
     }
 
     fn get_next_paste_coordinates(&mut self) -> (u32, u32) {
