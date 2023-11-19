@@ -1,5 +1,5 @@
 use bytes::Bytes;
-use image::{buffer::ConvertBuffer, ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
+use image::{ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
 use memmap::Mmap;
 
 pub(crate) type RgbaImageBuffer<T> = ImageBuffer<Rgba<u8>, T>;
@@ -16,6 +16,26 @@ pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
 impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     pub fn get_underlying(&self) -> &U {
         return &self.underlying;
+    }
+
+    pub fn get_underlying_mut(&mut self) -> &mut U {
+        return &mut self.underlying;
+    }
+
+    pub fn capacity(&self) -> usize {
+        return self.underlying.pixels().count() * <P as Pixel>::CHANNEL_COUNT as usize;
+    }
+
+    pub fn width(&self) -> u32 {
+        return self.underlying.width();
+    }
+
+    pub fn height(&self) -> u32 {
+        return self.underlying.height();
+    }
+
+    pub fn dimensions(&self) -> (u32, u32) {
+        return self.underlying.dimensions();
     }
 }
 
@@ -55,18 +75,10 @@ impl FromWithFormat<Mmap> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
     }
 }
 
-impl From<RgbaImageBuffer<Vec<u8>>> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from(rgba_image: RgbaImageBuffer<Vec<u8>>) -> Self {
-        Self {
-            underlying: rgba_image,
-        }
-    }
-}
-
-impl From<RgbImageBuffer<Vec<u8>>> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from(rgb_image: RgbImageBuffer<Vec<u8>>) -> Self {
-        Self {
-            underlying: rgb_image.convert(),
-        }
+impl<P: Pixel> From<ImageBuffer<P, Vec<P::Subpixel>>>
+    for Image<P, ImageBuffer<P, Vec<P::Subpixel>>>
+{
+    fn from(image: ImageBuffer<P, Vec<P::Subpixel>>) -> Self {
+        Self { underlying: image }
     }
 }
