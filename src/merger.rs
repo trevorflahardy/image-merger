@@ -1,11 +1,9 @@
 use image::Pixel;
-use num_traits::Zero;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use std::marker::Sync;
+use sync_unsafe_cell::SyncUnsafeCell; // NOTE: Use this crate until std::cell::SyncUnsafeCell isn't nightly.
 
 use crate::core::Image;
-
-/// NOTE FOR FUTURE: Canvas dimensions will dynamically resize based on if you hit an index that is out of bounds. This means a new canvas will only
-/// contain space for num_images_per_row and resize later. To combat this, the canvas can be resized according to the expected number of images. This is a memory
-/// management feature
 
 pub struct Merger<P: Pixel> {
     canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
@@ -16,7 +14,7 @@ pub struct Merger<P: Pixel> {
     total_rows: u32,        // The total number of rows currently on the canvas.
 }
 
-impl<P: Pixel> Merger<P> {
+impl<P: Pixel + Sync> Merger<P> {
     pub fn new(image_dimensions: (u32, u32), num_images_per_row: u32) -> Self {
         Self {
             canvas: Image::from(image::ImageBuffer::new(
@@ -39,51 +37,45 @@ impl<P: Pixel> Merger<P> {
         &self.canvas
     }
 
-    fn grow_canvas(&mut self) -> () {
-        self.total_rows += 1;
+    fn paste(
+        &mut self,
+        image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
+        paste_x: u32,
+        paste_y: u32,
+    ) -> ()
+    where
+        <P as Pixel>::Subpixel: Sync + Send,
+    {
+        // Hold the contents of our canvas in a UnsafeCell so that each thread can mutate
+        // its contents.
+        let canvas_underlying = &*self.canvas.as_raw();
+        let mut canvas_cell = SyncUnsafeCell::new(canvas_underlying);
 
-        let new_canvas_dimensions = (self.canvas.width(), self.canvas.height() * self.total_rows);
+        // Go through each pixel in the image (at once), grab its relatve location on the canvas,
+        // and alter the canvas underlying buffer to reflect the new pixel.
+        (0..image.width() * image.height())
+            .into_par_iter()
+            .for_each(|i| {
+                let x = i % image.width();
+                let y = i / image.width();
 
-        // Create a new container with the capacity of the new canvas
-        let updated_capacity = (<P as Pixel>::CHANNEL_COUNT as usize)
-            * (new_canvas_dimensions.0 * new_canvas_dimensions.1) as usize;
+                let pixel = *image.get_pixel(x, y);
 
-        // Steal the data from the immutable reference to the underlying container into a new vector
-        // that we can transfer to a new container.
-        let mut new_container: Vec<P::Subpixel> = Vec::with_capacity(updated_capacity);
-        unsafe {
-            new_container.set_len(updated_capacity);
-            let stolen_container_ptr = (*self.canvas.get_underlying_mut()).as_mut_ptr();
-            let new_container_ptr = new_container.as_mut_ptr();
-            std::ptr::copy_nonoverlapping(
-                stolen_container_ptr,
-                new_container_ptr,
-                self.canvas.capacity(),
-            );
-        }
+                // Get our canvas coordinates.
+                let canvas_x = paste_x + x;
+                let canvas_y = paste_y + y;
 
-        // Fill the new container with zeros.
-        new_container.resize(updated_capacity, P::Subpixel::zero());
-
-        // Check if the image will fit
-
-        // Create a new canvas with the new dimensions and the new container.
-        let new_canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> = Image::from(
-            image::ImageBuffer::from_raw(
-                new_canvas_dimensions.0,
-                new_canvas_dimensions.1,
-                new_container,
-            )
-            .unwrap(),
-        );
-        self.canvas = new_canvas;
+                // Obtain a mutable copy of the canvas cell
+                // cannot borrow `canvas_cell` as mutable, as it is a captured variable in a `Fn` closure:: cannot borrow as mutable
+                // TODO: Allow mutable variables in closures.
+                // let canvas_cell_mut = canvas_cell.get_mut();
+            })
     }
 
     fn get_next_paste_coordinates(&mut self) -> (u32, u32) {
         let available_images = (self.num_images_per_row * self.total_rows) - self.num_images;
         if available_images == 0 {
-            // Resize the canvas to make room for the next row, we are out of space.
-            self.grow_canvas();
+            panic!("No more space on canvas, please resize the canvas.");
         }
 
         // Calculate the next paste coordinates.
@@ -102,8 +94,7 @@ impl<P: Pixel> Merger<P> {
     pub fn push<U: image::GenericImage<Pixel = P>>(&mut self, image: &Image<P, U>) -> () {
         let (x, y) = self.get_next_paste_coordinates();
 
-        let canvas = self.canvas.get_underlying_mut();
-        image::imageops::overlay(&mut *canvas, image.get_underlying(), x as i64, y as i64);
+        image::imageops::overlay(&mut *self.canvas, &**image, x as i64, y as i64);
 
         self.last_pasted_index += 1;
         self.num_images += 1;
@@ -111,8 +102,11 @@ impl<P: Pixel> Merger<P> {
 
     /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
     /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
-    pub fn bulk_push<U: image::GenericImage<Pixel = P>>(&mut self, images: Vec<Image<P, U>>) {
-        todo!()
+    pub fn bulk_push<U: image::GenericImage<Pixel = P> + std::marker::Sync>(
+        &mut self,
+        images: Vec<Image<P, U>>,
+    ) {
+        todo!();
     }
 
     /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
