@@ -1,8 +1,6 @@
 mod core;
 mod merger;
 
-use std::ops::Deref;
-
 /// An image merger that allows for the merging of multiple images into one as a grid.
 /// You can push a new image into the builder, append it to the main image, then drop it from memory to only have N images in memory at a time.
 use merger::Merger;
@@ -24,22 +22,26 @@ fn generate_test_square() -> core::RgbaImageBuffer<Vec<u8>> {
     image
 }
 
-fn main() -> () {
-    let mut merger: Merger<image::Rgba<u8>> = Merger::new((100, 100), 10);
-
+fn perform_pasting(merger: &mut Merger<image::Rgba<u8>>, count: usize) {
     let image = core::Image::from(generate_test_square());
 
+    (0..count).for_each(|_| {
+        merger.push(&image);
+    });
+}
+fn main() -> () {
+    let mut merger: Merger<image::Rgba<u8>> = Merger::new((100, 100), 100, 100);
+
     let start_time = std::time::Instant::now();
-    for _ in 0..100 {
-        (&mut merger).push(&image);
-        println!("Num images: {}", merger.get_num_images());
-    }
+
+    perform_pasting(&mut merger, 1000);
+
     let end_time = std::time::Instant::now();
     println!(
         "Time to paste 1000 images auto adjusting canvas size 100 times: {:?}",
         end_time - start_time
     );
 
-    // Save the image for testing
-    merger.get_canvas().deref().save("test.png").unwrap();
+    let canvas = merger.get_canvas();
+    canvas.save("test.png").expect("Failed to save image");
 }
