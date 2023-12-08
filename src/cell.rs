@@ -49,8 +49,8 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
         let handouts = self.get_handouts_mut();
 
         if handouts.get(&(x, y)).is_some() {
-            // Handout already requested for this pixel, need to panic
-            panic!("Handout already requested for pixel ({}, {})", x, y);
+            // Handout already requested for this pixel, need to return None in this case
+            return None;
         }
 
         handouts.insert((x, y));
