@@ -1,11 +1,15 @@
 use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use rayon::prelude::IndexedParallelIterator;
+use rayon::prelude::*;
 use std::marker::Sync;
 
 use crate::{cell::ImageCell, core::Image};
 
-pub struct Merger<P: Pixel + Sync> {
+pub struct Merger<P>
+where
+    P: Pixel + Sync,
+    <P as Pixel>::Subpixel: Sync,
+{
     canvas: ImageCell<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
     image_dimensions: (u32, u32), // The dimensions of the images being pasted (images must be a uniform size)
     num_images: u32,              // The number of images that have been pasted to the canvas
@@ -14,7 +18,11 @@ pub struct Merger<P: Pixel + Sync> {
     total_rows: u32,        // The total number of rows currently on the canvas.
 }
 
-impl<P: Pixel + Sync> Merger<P> {
+impl<P> Merger<P>
+where
+    P: Pixel + Sync,
+    <P as Pixel>::Subpixel: Sync,
+{
     pub fn new(image_dimensions: (u32, u32), images_per_row: u32, rows: u32) -> Self {
         let canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
             Image::from(image::ImageBuffer::new(
@@ -41,7 +49,7 @@ impl<P: Pixel + Sync> Merger<P> {
     }
 
     fn paste(
-        &mut self,
+        &self,
         image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
         paste_x: u32,
         paste_y: u32,
@@ -72,13 +80,13 @@ impl<P: Pixel + Sync> Merger<P> {
             });
     }
 
-    fn has_additional_space(&self) -> bool {
-        let available_images = (self.images_per_row * self.total_rows) - self.num_images;
-        return available_images > 0;
+    #[inline(always)]
+    fn additional_space(&self) -> u32 {
+        (self.images_per_row * self.total_rows) - self.num_images
     }
 
     fn get_next_paste_coordinates(&mut self) -> (u32, u32) {
-        if !self.has_additional_space() {
+        if self.additional_space() <= 0 {
             panic!("No more space on the canvas!");
         }
 
@@ -106,9 +114,33 @@ impl<P: Pixel + Sync> Merger<P> {
 
     /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
     /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
-    pub fn bulk_push(&mut self, images: Vec<&Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>>) {
-        let _images = images.into_boxed_slice();
-        todo!();
+    pub fn bulk_push(
+        &mut self,
+        images: &Vec<&Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>>,
+    ) -> () {
+        // If we can't fit all the images we need to panic.
+        if self.additional_space() < images.len() as u32 {
+            // TODO: Maybe only take as many images as we can fit?
+            panic!("There is not enough space on the canvas to fit all the requested images.");
+        }
+
+        (0..images.len()).into_par_iter().for_each(|index| {
+            let image = images[index];
+
+            // The image coordinates can easily be calculated by using the last_pasted_index
+            // and making the calculations ourselves.
+            let offset_index = (index as i32 + self.last_pasted_index + 1) as u32;
+
+            let offset_x = offset_index % self.images_per_row;
+            let offset_y = offset_index / self.images_per_row;
+
+            let x = offset_x * self.image_dimensions.0;
+            let y = offset_y * self.image_dimensions.1;
+
+            self.paste(image, x, y);
+        });
+
+        self.last_pasted_index += images.len() as i32;
     }
 
     /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
