@@ -1,3 +1,4 @@
+mod cell;
 mod core;
 mod merger;
 
@@ -22,26 +23,48 @@ fn generate_test_square() -> core::RgbaImageBuffer<Vec<u8>> {
     image
 }
 
-fn perform_pasting(merger: &mut Merger<image::Rgba<u8>>, count: usize) {
+fn perform_pasting() {
+    let mut merger: Merger<image::Rgba<u8>> = Merger::new((100, 100), 10, 10);
+
     let image = core::Image::from(generate_test_square());
 
-    (0..count).for_each(|_| {
+    let start_time = std::time::Instant::now();
+    (0..100).for_each(|_| {
         merger.push(&image);
     });
-}
-fn main() -> () {
-    let mut merger: Merger<image::Rgba<u8>> = Merger::new((100, 100), 100, 100);
-
-    let start_time = std::time::Instant::now();
-
-    perform_pasting(&mut merger, 1000);
 
     let end_time = std::time::Instant::now();
     println!(
-        "Time to paste 1000 images auto adjusting canvas size 100 times: {:?}",
+        "Time to paste FAST 100 images auto adjusting canvas size 100 times: {:?}",
         end_time - start_time
     );
 
     let canvas = merger.get_canvas();
-    canvas.save("test.png").expect("Failed to save image");
+    canvas.save("fast.png").expect("Failed to save image");
+}
+
+fn perform_pasting_slow() {
+    let image = generate_test_square();
+
+    let mut canvas = core::RgbaImageBuffer::new(100 * 10, 100 * 10);
+
+    let start_time = std::time::Instant::now();
+    (0..100).for_each(|index| {
+        let x = index % 10 * 100;
+        let y = index / 10 * 100;
+        image::imageops::overlay(&mut canvas, &image, x as i64, y as i64);
+    });
+
+    let end_time = std::time::Instant::now();
+    println!(
+        "Time to paste SLOW 100 images auto adjusting canvas size 100 times: {:?}",
+        end_time - start_time
+    );
+
+    canvas.save("slow.png").expect("Failed to save image");
+}
+
+fn main() -> () {
+    perform_pasting();
+    perform_pasting_slow();
 }
