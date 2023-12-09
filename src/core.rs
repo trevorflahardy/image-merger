@@ -43,7 +43,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> DerefMut for Image<P, U> {
 impl From<Bytes> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
     fn from(bytes: Bytes) -> Self {
         Self {
-            underlying: image::load_from_memory(bytes.as_ref()).unwrap().to_rgba8(),
+            underlying: image::load_from_memory(&bytes).unwrap().to_rgba8(),
         }
     }
 }
