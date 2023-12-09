@@ -5,6 +5,11 @@ use std::marker::Sync;
 
 use crate::{cell::ImageCell, core::Image};
 
+pub struct Padding {
+    pub x: u32,
+    pub y: u32,
+}
+
 pub struct Merger<P>
 where
     P: Pixel + Sync,
@@ -16,18 +21,29 @@ where
     images_per_row: u32,          // The number of pages per row.
     last_pasted_index: i32, // The index of the last pasted image, starts at -1 if not images have been pasted.
     total_rows: u32,        // The total number of rows currently on the canvas.
+    padding: Option<Padding>,
 }
 
+#[allow(dead_code)]
 impl<P> Merger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
 {
-    pub fn new(image_dimensions: (u32, u32), images_per_row: u32, rows: u32) -> Self {
+    pub fn new(
+        image_dimensions: (u32, u32),
+        images_per_row: u32,
+        rows: u32,
+        padding: Option<Padding>,
+    ) -> Self {
+        let image_gaps_x =
+            (images_per_row - 1) * padding.as_ref().and_then(|p| Some(p.x)).unwrap_or(0);
+        let image_gaps_y = (rows - 1) * padding.as_ref().and_then(|p| Some(p.y)).unwrap_or(0);
+
         let canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
             Image::from(image::ImageBuffer::new(
-                image_dimensions.0 * images_per_row,
-                image_dimensions.1 * rows,
+                (image_dimensions.0 * images_per_row) + image_gaps_x,
+                (image_dimensions.1 * rows) + image_gaps_y,
             ));
 
         Self {
@@ -37,6 +53,7 @@ where
             images_per_row: images_per_row,
             last_pasted_index: -1,
             total_rows: rows,
+            padding,
         }
     }
 
@@ -85,20 +102,25 @@ where
         (self.images_per_row * self.total_rows) - self.num_images
     }
 
+    fn get_paste_coordinates_unchecked(&self, index: u32) -> (u32, u32) {
+        let offset_x = index % self.images_per_row;
+        let offset_y = index / self.images_per_row;
+
+        let padding_x = self.padding.as_ref().and_then(|p| Some(p.x)).unwrap_or(0) * offset_x;
+        let padding_y = self.padding.as_ref().and_then(|p| Some(p.y)).unwrap_or(0) * offset_y;
+
+        let x = (offset_x * self.image_dimensions.0) + padding_x;
+        let y = (offset_y * self.image_dimensions.1) + padding_y;
+
+        (x, y)
+    }
+
     fn get_next_paste_coordinates(&mut self) -> (u32, u32) {
         if self.additional_space() <= 0 {
             panic!("No more space on the canvas!");
         }
 
-        // Calculate the next paste coordinates.
-        let current_paste_index = (self.last_pasted_index + 1) as u32;
-        let offset_x = current_paste_index % self.images_per_row;
-        let offset_y = current_paste_index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
-
-        return (x, y);
+        self.get_paste_coordinates_unchecked((self.last_pasted_index + 1) as u32)
     }
 
     /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
@@ -131,12 +153,7 @@ where
             // and making the calculations ourselves.
             let offset_index = (index as i32 + self.last_pasted_index + 1) as u32;
 
-            let offset_x = offset_index % self.images_per_row;
-            let offset_y = offset_index / self.images_per_row;
-
-            let x = offset_x * self.image_dimensions.0;
-            let y = offset_y * self.image_dimensions.1;
-
+            let (x, y) = self.get_paste_coordinates_unchecked(offset_index);
             self.paste(image, x, y);
         });
 
@@ -145,6 +162,16 @@ where
 
     /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
     pub fn remove_image(&mut self, index: u32) {
-        todo!()
+        let offset_x = index % self.images_per_row;
+        let offset_y = index / self.images_per_row;
+
+        let x = offset_x * self.image_dimensions.0;
+        let y = offset_y * self.image_dimensions.1;
+
+        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> = Image::from(
+            image::ImageBuffer::new(self.image_dimensions.0, self.image_dimensions.1),
+        );
+
+        self.paste(&black_image, x, y);
     }
 }

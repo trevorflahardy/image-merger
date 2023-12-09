@@ -4,8 +4,8 @@ use bytes::Bytes;
 use image::{ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
 use memmap::Mmap;
 
-pub(crate) type RgbaImageBuffer<T> = ImageBuffer<Rgba<u8>, T>;
-pub(crate) type RgbImageBuffer<T> = ImageBuffer<Rgb<u8>, T>;
+pub type RgbaImageBuffer<T> = ImageBuffer<Rgba<u8>, T>;
+pub type RgbImageBuffer<T> = ImageBuffer<Rgb<u8>, T>;
 
 pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: U,
