@@ -45,18 +45,16 @@ fn merge_images_slow(
         test_square_height * total_rows + (padding_y * (total_rows - 1)),
     );
 
-    for global_x in 0..images_per_row {
-        for global_y in 0..total_rows {
-            let padding_x = padding_x * global_x;
-            let padding_y = padding_y * global_y;
+    for index in 0..total_images {
+        let global_x = index % images_per_row;
+        let global_y = index / images_per_row;
 
-            overlay(
-                &mut *canvas,
-                &*test_square,
-                ((global_x * test_square_width) + padding_x) as i64,
-                ((global_y * test_square_height) + padding_y) as i64,
-            )
-        }
+        overlay(
+            &mut *canvas,
+            &*test_square,
+            ((global_x * test_square_width) + padding_x) as i64,
+            ((global_y * test_square_height) + padding_y) as i64,
+        )
     }
 
     canvas
@@ -146,4 +144,20 @@ fn test_bulk_push_merge_padding() {
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
 
     assert_eq!(merger.get_canvas(), &slow_merge);
+}
+
+#[test]
+fn test_remove_image() {
+    // 99 images on the slow merge should be equal to 100 images on the fast merge minus the 1 removed image.
+    let test_square = generate_test_square();
+    let slow_merge = merge_images_slow(IMAGES_PER_ROW, 99, 0, 0);
+
+    let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+
+    merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
+    merger.remove_image(99);
+
+    // Save the image
+    // merger.get_canvas().save("test_remove_image.png").unwrap();
+    slow_merge.save("test_remove_image_slow.png").unwrap();
 }
