@@ -168,9 +168,8 @@ where
         let x = offset_x * self.image_dimensions.0;
         let y = offset_y * self.image_dimensions.1;
 
-        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> = Image::from(
-            image::ImageBuffer::new(self.image_dimensions.0, self.image_dimensions.1),
-        );
+        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
+            Image::new(self.image_dimensions.0, self.image_dimensions.1);
 
         self.paste(&black_image, x, y);
     }
