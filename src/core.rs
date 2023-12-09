@@ -40,22 +40,6 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> DerefMut for Image<P, U> {
     }
 }
 
-impl From<Bytes> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from(bytes: Bytes) -> Self {
-        Self {
-            underlying: image::load_from_memory(&bytes).unwrap().to_rgba8(),
-        }
-    }
-}
-
-impl From<Mmap> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from(mmap: Mmap) -> Self {
-        Self {
-            underlying: image::load_from_memory(&mmap).unwrap().to_rgba8(),
-        }
-    }
-}
-
 impl<P: Pixel> From<ImageBuffer<P, Vec<P::Subpixel>>>
     for Image<P, ImageBuffer<P, Vec<P::Subpixel>>>
 {
@@ -68,10 +52,11 @@ pub trait FromWithFormat<T> {
     fn from_with_format(t: T, format: ImageFormat) -> Self;
 }
 
+// TODO: Make this impl<P: Pixel> ... for all Pixel types
 impl FromWithFormat<Bytes> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
     fn from_with_format(bytes: Bytes, format: ImageFormat) -> Self {
         Self {
-            underlying: image::load_from_memory_with_format(bytes.as_ref(), format)
+            underlying: image::load_from_memory_with_format(&bytes, format)
                 .unwrap()
                 .to_rgba8(),
         }
