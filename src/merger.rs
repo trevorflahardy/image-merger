@@ -40,11 +40,10 @@ where
             (images_per_row - 1) * padding.as_ref().and_then(|p| Some(p.x)).unwrap_or(0);
         let image_gaps_y = (rows - 1) * padding.as_ref().and_then(|p| Some(p.y)).unwrap_or(0);
 
-        let canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
-            Image::from(image::ImageBuffer::new(
-                (image_dimensions.0 * images_per_row) + image_gaps_x,
-                (image_dimensions.1 * rows) + image_gaps_y,
-            ));
+        let canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> = Image::new(
+            (image_dimensions.0 * images_per_row) + image_gaps_x,
+            (image_dimensions.1 * rows) + image_gaps_y,
+        );
 
         Self {
             canvas: ImageCell::new(canvas),
