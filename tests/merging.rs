@@ -34,7 +34,8 @@ fn merge_images_slow(
     padding_x: u32,
     padding_y: u32,
 ) -> Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    let total_rows = total_images / images_per_row;
+    // Cieling division for total rows.
+    let total_rows = (total_images + images_per_row - 1) / images_per_row;
 
     let test_square = generate_test_square();
     let test_square_width = test_square.width();
@@ -150,14 +151,12 @@ fn test_bulk_push_merge_padding() {
 fn test_remove_image() {
     // 99 images on the slow merge should be equal to 100 images on the fast merge minus the 1 removed image.
     let test_square = generate_test_square();
-    let slow_merge = merge_images_slow(IMAGES_PER_ROW, 99, 0, 0);
+    let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES - 1, 0, 0);
 
     let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
 
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
     merger.remove_image(99);
 
-    // Save the image
-    // merger.get_canvas().save("test_remove_image.png").unwrap();
-    slow_merge.save("test_remove_image_slow.png").unwrap();
+    assert_eq!(merger.get_canvas(), &slow_merge);
 }
