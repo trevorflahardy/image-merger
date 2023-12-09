@@ -18,18 +18,10 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     }
 }
 
-impl Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
+impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
     pub fn new(width: u32, height: u32) -> Self {
         Self {
-            underlying: RgbaImageBuffer::new(width, height),
-        }
-    }
-}
-
-impl Image<Rgb<u8>, RgbImageBuffer<Vec<u8>>> {
-    pub fn new(width: u32, height: u32) -> Self {
-        Self {
-            underlying: RgbImageBuffer::new(width, height),
+            underlying: ImageBuffer::new(width, height),
         }
     }
 }
