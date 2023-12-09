@@ -4,9 +4,10 @@ use bytes::Bytes;
 use image::{ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
 use memmap::Mmap;
 
-pub type RgbaImageBuffer<T> = ImageBuffer<Rgba<u8>, T>;
-pub type RgbImageBuffer<T> = ImageBuffer<Rgb<u8>, T>;
+pub type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
+pub type RgbImageBuffer<Container> = ImageBuffer<Rgb<u8>, Container>;
 
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: U,
 }
@@ -14,6 +15,22 @@ pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
 impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     pub fn capacity(&self) -> usize {
         return self.underlying.pixels().count() * <P as Pixel>::CHANNEL_COUNT as usize;
+    }
+}
+
+impl Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
+    pub fn new(width: u32, height: u32) -> Self {
+        Self {
+            underlying: RgbaImageBuffer::new(width, height),
+        }
+    }
+}
+
+impl Image<Rgb<u8>, RgbImageBuffer<Vec<u8>>> {
+    pub fn new(width: u32, height: u32) -> Self {
+        Self {
+            underlying: RgbImageBuffer::new(width, height),
+        }
     }
 }
 
