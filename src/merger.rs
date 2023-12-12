@@ -127,10 +127,7 @@ where
 
     /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
     /// having to hold all them in memory.
-    pub fn push<Container>(
-        &mut self,
-        image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
-    ) -> ()
+    pub fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
         Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
     {

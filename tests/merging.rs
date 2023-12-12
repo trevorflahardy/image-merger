@@ -87,7 +87,7 @@ fn test_push_merge() {
     let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
 
     for _ in 0..100 {
-        merger.push::<Vec<u8>>(&test_square);
+        merger.push(&test_square);
     }
 
     assert_eq!(merger.get_canvas(), &slow_merge);
@@ -120,7 +120,7 @@ fn test_push_merge_padding() {
     );
 
     for _ in 0..TOTAL_IMAGES {
-        merger.push::<Vec<u8>>(&test_square);
+        merger.push(&test_square);
     }
 
     assert_eq!(merger.get_canvas(), &slow_merge);
