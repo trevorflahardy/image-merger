@@ -1,9 +1,9 @@
+use crate::{cell::ImageCell, core::Image};
 use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::prelude::*;
-use std::marker::Sync;
-
-use crate::{cell::ImageCell, core::Image};
+use std::ops::DerefMut;
+use std::{marker::Sync, ops::Deref};
 
 pub struct Padding {
     pub x: u32,
@@ -64,12 +64,15 @@ where
         &self.canvas
     }
 
-    fn paste(
+    fn paste<Container>(
         &self,
-        image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
+        image: &Image<P, image::ImageBuffer<P, Container>>,
         paste_x: u32,
         paste_y: u32,
-    ) -> () {
+    ) -> ()
+    where
+        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
+    {
         // Hold the contents of our canvas in a UnsafeCell so that each thread can mutate
         // its contents.
         //let canvas_underlying = &*self.canvas.as_raw();
@@ -124,7 +127,13 @@ where
 
     /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
     /// having to hold all them in memory.
-    pub fn push(&mut self, image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>) -> () {
+    pub fn push<Container>(
+        &mut self,
+        image: &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
+    ) -> ()
+    where
+        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
+    {
         let (x, y) = self.get_next_paste_coordinates();
 
         self.paste(image, x, y);
@@ -135,10 +144,13 @@ where
 
     /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
     /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
-    pub fn bulk_push(
+    pub fn bulk_push<Container>(
         &mut self,
-        images: &Vec<&Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>>,
-    ) -> () {
+        images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
+    ) -> ()
+    where
+        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]> + Sync,
+    {
         // If we can't fit all the images we need to panic.
         if self.additional_space() < images.len() as u32 {
             // TODO: Maybe only take as many images as we can fit?
