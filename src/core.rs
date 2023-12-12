@@ -43,7 +43,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> DerefMut for Image<P, U> {
 impl<P, Container> From<ImageBuffer<P, Container>> for Image<P, ImageBuffer<P, Container>>
 where
     P: Pixel,
-    Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
+    Container: DerefMut<Target = [P::Subpixel]>,
 {
     fn from(image: ImageBuffer<P, Container>) -> Self {
         Self { underlying: image }
