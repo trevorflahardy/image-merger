@@ -2,8 +2,7 @@ use crate::{cell::ImageCell, core::Image};
 use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rayon::prelude::*;
-use std::ops::DerefMut;
-use std::{marker::Sync, ops::Deref};
+use std::{marker::Sync, ops::DerefMut};
 
 pub struct Padding {
     pub x: u32,
