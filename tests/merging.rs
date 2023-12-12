@@ -50,12 +50,10 @@ fn merge_images_slow(
         let global_x = index % images_per_row;
         let global_y = index / images_per_row;
 
-        overlay(
-            &mut *canvas,
-            &*test_square,
-            ((global_x * test_square_width) + padding_x) as i64,
-            ((global_y * test_square_height) + padding_y) as i64,
-        )
+        let x = (global_x * test_square_width) + (global_x * padding_x);
+        let y = (global_y * test_square_height) + (global_y * padding_y);
+
+        overlay(&mut *canvas, &*test_square, x as i64, y as i64)
     }
 
     canvas
@@ -89,7 +87,7 @@ fn test_push_merge() {
     let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
 
     for _ in 0..100 {
-        merger.push(&test_square);
+        merger.push::<Vec<u8>>(&test_square);
     }
 
     assert_eq!(merger.get_canvas(), &slow_merge);
@@ -108,7 +106,7 @@ fn test_bulk_push_merge() {
 
 #[test]
 fn test_push_merge_padding() {
-    let test_square = generate_test_square();
+    let test_square: Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
     let mut merger: Merger<Rgba<u8>> = Merger::new(
@@ -122,7 +120,7 @@ fn test_push_merge_padding() {
     );
 
     for _ in 0..TOTAL_IMAGES {
-        merger.push(&test_square);
+        merger.push::<Vec<u8>>(&test_square);
     }
 
     assert_eq!(merger.get_canvas(), &slow_merge);
