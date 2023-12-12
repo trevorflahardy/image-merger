@@ -71,7 +71,7 @@ where
         paste_y: u32,
     ) -> ()
     where
-        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
+        Container: DerefMut<Target = [P::Subpixel]>,
     {
         // Hold the contents of our canvas in a UnsafeCell so that each thread can mutate
         // its contents.
@@ -129,7 +129,7 @@ where
     /// having to hold all them in memory.
     pub fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
-        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]>,
+        Container: DerefMut<Target = [P::Subpixel]>,
     {
         let (x, y) = self.get_next_paste_coordinates();
 
@@ -146,7 +146,7 @@ where
         images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
     ) -> ()
     where
-        Container: Deref<Target = [P::Subpixel]> + DerefMut<Target = [P::Subpixel]> + Sync,
+        Container: DerefMut<Target = [P::Subpixel]> + Sync,
     {
         // If we can't fit all the images we need to panic.
         if self.additional_space() < images.len() as u32 {
