@@ -1,19 +1,36 @@
-use crate::{cell::ImageCell, core::Image};
+use crate::{cell::ImageCell, core::Image, functions::paste};
 use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use rayon::prelude::*;
 use std::{marker::Sync, ops::DerefMut};
 
-pub struct Padding {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Point {
     pub x: u32,
     pub y: u32,
 }
 
-pub struct Merger<P>
+pub type Padding = Point;
+
+pub trait Merger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
 {
+    fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>;
+
+    fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
+    where
+        Container: DerefMut<Target = [P::Subpixel]>;
+
+    fn bulk_push<Container>(
+        &mut self,
+        images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
+    ) -> ()
+    where
+        Container: DerefMut<Target = [P::Subpixel]> + Sync;
+}
+
+pub struct FixedSizeMerger<P: Pixel> {
     canvas: ImageCell<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
     image_dimensions: (u32, u32), // The dimensions of the images being pasted (images must be a uniform size)
     num_images: u32,              // The number of images that have been pasted to the canvas
@@ -23,8 +40,7 @@ where
     padding: Option<Padding>,
 }
 
-#[allow(dead_code)]
-impl<P> Merger<P>
+impl<P> FixedSizeMerger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
@@ -59,45 +75,6 @@ where
         self.num_images
     }
 
-    pub fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> {
-        &self.canvas
-    }
-
-    fn paste<Container>(
-        &self,
-        image: &Image<P, image::ImageBuffer<P, Container>>,
-        paste_x: u32,
-        paste_y: u32,
-    ) -> ()
-    where
-        Container: DerefMut<Target = [P::Subpixel]>,
-    {
-        // Hold the contents of our canvas in a UnsafeCell so that each thread can mutate
-        // its contents.
-        //let canvas_underlying = &*self.canvas.as_raw();
-        let canvas_cell = &self.canvas;
-
-        // Go through each pixel in the image (at once), grab its relatve location on the canvas,
-        // and alter the canvas underlying buffer to reflect the new pixel.
-        let image_width = image.width();
-        let image_pixels = image.pixels().collect::<Vec<_>>();
-        image_pixels
-            .into_par_iter()
-            .enumerate()
-            .for_each(|(index, pixel)| {
-                let x = index as u32 % image_width;
-                let y = index as u32 / image_width;
-
-                let canvas_x = paste_x + x;
-                let canvas_y = paste_y + y;
-
-                unsafe {
-                    let mut handout = canvas_cell.request_handout_unchecked(canvas_x, canvas_y);
-                    handout.put_pixel(pixel.clone());
-                }
-            });
-    }
-
     #[inline(always)]
     fn additional_space(&self) -> u32 {
         (self.images_per_row * self.total_rows) - self.num_images
@@ -124,15 +101,39 @@ where
         self.get_paste_coordinates_unchecked((self.last_pasted_index + 1) as u32)
     }
 
+    /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
+    pub fn remove_image(&mut self, index: u32) {
+        let offset_x = index % self.images_per_row;
+        let offset_y = index / self.images_per_row;
+
+        let x = offset_x * self.image_dimensions.0;
+        let y = offset_y * self.image_dimensions.1;
+
+        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
+            Image::new(self.image_dimensions.0, self.image_dimensions.1);
+
+        paste(&self.canvas, &black_image, Point { x, y });
+    }
+}
+
+impl<P> Merger<P> for FixedSizeMerger<P>
+where
+    P: Pixel + Sync,
+    <P as Pixel>::Subpixel: Sync,
+{
+    fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> {
+        &self.canvas
+    }
+
     /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
     /// having to hold all them in memory.
-    pub fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
+    fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
         Container: DerefMut<Target = [P::Subpixel]>,
     {
         let (x, y) = self.get_next_paste_coordinates();
 
-        self.paste(image, x, y);
+        paste(&self.canvas, image, Point { x, y });
 
         self.last_pasted_index += 1;
         self.num_images += 1;
@@ -140,7 +141,7 @@ where
 
     /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
     /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
-    pub fn bulk_push<Container>(
+    fn bulk_push<Container>(
         &mut self,
         images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
     ) -> ()
@@ -161,23 +162,9 @@ where
             let offset_index = (index as i32 + self.last_pasted_index + 1) as u32;
 
             let (x, y) = self.get_paste_coordinates_unchecked(offset_index);
-            self.paste(image, x, y);
+            paste(&self.canvas, image, Point { x, y });
         });
 
         self.last_pasted_index += images.len() as i32;
-    }
-
-    /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
-    pub fn remove_image(&mut self, index: u32) {
-        let offset_x = index % self.images_per_row;
-        let offset_y = index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
-
-        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
-            Image::new(self.image_dimensions.0, self.image_dimensions.1);
-
-        self.paste(&black_image, x, y);
     }
 }

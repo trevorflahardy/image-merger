@@ -1,5 +1,5 @@
 use image::imageops::overlay;
-use image_merger::{Image, Merger, Padding, Rgba, RgbaImageBuffer};
+use image_merger::{FixedSizeMerger, Image, Merger, Padding, Rgba, RgbaImageBuffer};
 
 static IMAGES_PER_ROW: u32 = 10;
 static TOTAL_ROWS: u32 = 10;
@@ -84,7 +84,8 @@ fn test_push_merge() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(10, 100, 0, 0);
 
-    let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+    let mut merger: FixedSizeMerger<Rgba<u8>> =
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
 
     for _ in 0..100 {
         merger.push(&test_square);
@@ -98,7 +99,8 @@ fn test_bulk_push_merge() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(10, 100, 0, 0);
 
-    let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+    let mut merger: FixedSizeMerger<Rgba<u8>> =
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
     merger.bulk_push(&vec![&test_square; 100]);
 
     assert_eq!(merger.get_canvas(), &slow_merge);
@@ -109,7 +111,7 @@ fn test_push_merge_padding() {
     let test_square: Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
-    let mut merger: Merger<Rgba<u8>> = Merger::new(
+    let mut merger: FixedSizeMerger<Rgba<u8>> = FixedSizeMerger::new(
         (100, 100),
         IMAGES_PER_ROW,
         TOTAL_ROWS,
@@ -131,7 +133,7 @@ fn test_bulk_push_merge_padding() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
-    let mut merger: Merger<Rgba<u8>> = Merger::new(
+    let mut merger: FixedSizeMerger<Rgba<u8>> = FixedSizeMerger::new(
         (100, 100),
         IMAGES_PER_ROW,
         TOTAL_ROWS,
@@ -151,7 +153,8 @@ fn test_remove_image() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES - 1, 0, 0);
 
-    let mut merger: Merger<Rgba<u8>> = Merger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+    let mut merger: FixedSizeMerger<Rgba<u8>> =
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
 
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
     merger.remove_image(99);
