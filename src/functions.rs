@@ -6,7 +6,7 @@ use rayon::{
 };
 use std::{marker::Sync, ops::DerefMut};
 
-/// The library's underlying paste method. It requires you to pass the bit
+/// The library's underlying paste method.
 pub fn paste<P, Container>(
     bottom: &ImageCell<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
     top: &Image<P, image::ImageBuffer<P, Container>>,
