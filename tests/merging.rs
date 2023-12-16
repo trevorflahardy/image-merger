@@ -87,7 +87,7 @@ fn test_push_merge() {
     let slow_merge = merge_images_slow(10, 100, 0, 0);
 
     let mut merger: FixedSizeMerger<Rgba<u8>> =
-        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
 
     for _ in 0..100 {
         merger.push(&test_square);
@@ -102,7 +102,7 @@ fn test_bulk_push_merge() {
     let slow_merge = merge_images_slow(10, 100, 0, 0);
 
     let mut merger: FixedSizeMerger<Rgba<u8>> =
-        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
     merger.bulk_push(&vec![&test_square; 100]);
 
     assert_eq!(merger.get_canvas(), &slow_merge);
@@ -116,7 +116,7 @@ fn test_push_merge_padding() {
     let mut merger: FixedSizeMerger<Rgba<u8>> = FixedSizeMerger::new(
         (100, 100),
         IMAGES_PER_ROW,
-        TOTAL_ROWS,
+        TOTAL_IMAGES,
         Some(Padding {
             x: PADDING_X,
             y: PADDING_Y,
@@ -138,7 +138,7 @@ fn test_bulk_push_merge_padding() {
     let mut merger: FixedSizeMerger<Rgba<u8>> = FixedSizeMerger::new(
         (100, 100),
         IMAGES_PER_ROW,
-        TOTAL_ROWS,
+        TOTAL_IMAGES,
         Some(Padding {
             x: PADDING_X,
             y: PADDING_Y,
@@ -156,7 +156,7 @@ fn test_remove_image() {
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES - 1, 0, 0);
 
     let mut merger: FixedSizeMerger<Rgba<u8>> =
-        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_ROWS, None);
+        FixedSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
 
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
     merger.remove_image(99);

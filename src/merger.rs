@@ -73,30 +73,32 @@ where
     /// # Arguments
     /// * `image_dimensions` - The dimensions of the images being pasted (images must be a uniform size)
     /// * `images_per_row` - The number of images per row.
-    /// * `rows` - The number of rows.
+    /// * `total_images` - The total numbr of images to be in the final canvas.
     /// * `padding` - The padding between images, or None for no padding.
     pub fn new(
         image_dimensions: (u32, u32),
         images_per_row: u32,
-        rows: u32,
+        total_images: u32,
         padding: Option<Padding>,
     ) -> Self {
+        let total_rows = (total_images + images_per_row - 1) / images_per_row;
+
         let image_gaps_x =
             (images_per_row - 1) * padding.as_ref().and_then(|p| Some(p.x)).unwrap_or(0);
-        let image_gaps_y = (rows - 1) * padding.as_ref().and_then(|p| Some(p.y)).unwrap_or(0);
+        let image_gaps_y = (total_rows - 1) * padding.as_ref().and_then(|p| Some(p.y)).unwrap_or(0);
 
         let canvas: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> = Image::new(
             (image_dimensions.0 * images_per_row) + image_gaps_x,
-            (image_dimensions.1 * rows) + image_gaps_y,
+            (image_dimensions.1 * total_rows) + image_gaps_y,
         );
 
         Self {
             canvas: ImageCell::new(canvas),
-            image_dimensions: image_dimensions,
+            image_dimensions,
             num_images: 0,
             images_per_row: images_per_row,
             last_pasted_index: -1,
-            total_rows: rows,
+            total_rows,
             padding,
         }
     }
