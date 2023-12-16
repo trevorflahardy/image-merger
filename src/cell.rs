@@ -50,9 +50,14 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
     /// A handout that can be used to write to the underlying image's data buffer.
     /// # Example
     /// ```
-    /// let image_cell: ImageCell<P, _> = ...;
-    /// let mut handout = unsafe { image_cell.request_handout(0, 0) };
-    /// handout.put_pixel(...);
+    /// use image_merger::{Rgb, raw::ImageCell, Image};
+    /// use image::ImageBuffer;
+    ///
+    /// let buf: ImageBuffer<Rgb<u8>, Vec<u8>> = ImageBuffer::new(100, 100);
+    /// let cell = ImageCell::new(Image::from(buf));
+    /// let mut handout = unsafe { cell.request_handout(0, 0) };
+    /// handout.put_pixel(Rgb([255, 255, 255]));
+    /// ```
     pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<P, U> {
         Handout { ic: &self, x, y }
     }
