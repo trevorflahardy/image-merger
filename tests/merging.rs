@@ -1,5 +1,5 @@
-use image::imageops::overlay;
-use image_merger::{FixedSizeMerger, Image, Merger, Padding, Rgba, RgbaImageBuffer};
+use image::{imageops::overlay, Rgba};
+use image_merger::{FixedSizeMerger, Image, Merger, Padding, RgbaImageBuffer};
 
 static IMAGES_PER_ROW: u32 = 10;
 static TOTAL_ROWS: u32 = 10;

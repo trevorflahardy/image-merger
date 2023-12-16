@@ -7,4 +7,3 @@ pub use crate::cell::*;
 pub use crate::core::*;
 pub use crate::functions::*;
 pub use crate::merger::*;
-pub use image::{Rgb, Rgba};
