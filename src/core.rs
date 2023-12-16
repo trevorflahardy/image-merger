@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use image::{ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
+use image::{ImageBuffer, Pixel, Rgb, Rgba};
 
 pub type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
 pub type RgbImageBuffer<Container> = ImageBuffer<Rgb<u8>, Container>;
