@@ -12,6 +12,5 @@ lto = false
 
 
 [dependencies]
-bytes = "1.4.0"
 image = "0.24.7"
 rayon = "1.8.0"
