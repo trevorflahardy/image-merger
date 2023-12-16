@@ -1,11 +1,13 @@
-use image::{imageops::overlay, Rgba};
-use image_merger::{FixedSizeMerger, Image, Merger, Padding, RgbaImageBuffer};
+use image::{imageops::overlay, ImageBuffer, Rgba};
+use image_merger::*;
 
 static IMAGES_PER_ROW: u32 = 10;
 static TOTAL_ROWS: u32 = 10;
 static TOTAL_IMAGES: u32 = 100;
 static PADDING_X: u32 = 10;
 static PADDING_Y: u32 = 10;
+
+type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
 
 fn generate_test_square() -> Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
     let rgba = |x: u8, y: u8| -> image::Rgba<u8> {

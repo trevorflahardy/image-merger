@@ -13,6 +13,8 @@ pub struct ImageCell<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: UnsafeCell<Image<P, U>>,
 }
 
+/// Represents a handout of an image cell. This struct is used to write to the image cell's underlying
+/// image's data buffer without a mutable reference to the underlying image.
 pub struct Handout<'a, P: Pixel, U: image::GenericImage<Pixel = P>> {
     ic: &'a ImageCell<P, U>,
     x: u32,

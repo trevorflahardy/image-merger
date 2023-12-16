@@ -1,4 +1,2 @@
-# ImageMerger
-A work in progress project that provides optimizations for merging many images together into one image. 
-More functionality and official documentation will soon come as the project continues development, everything
-is subject to change. There is no guarantee for any feature or implementation to remain stable throughout this developmental period.
+# image-merger
+This crate provides faster functionality for image processing. It is build on top of the image crate and aims to provide a very fast way to merge many images together. It does this this by utilizing parallel processing and by avoiding unnecessary copies.

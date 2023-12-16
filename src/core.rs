@@ -1,9 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use image::{ImageBuffer, Pixel, Rgb, Rgba};
-
-pub type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
-pub type RgbImageBuffer<Container> = ImageBuffer<Rgb<u8>, Container>;
+use image::{ImageBuffer, Pixel};
 
 /// Represents an image that can be passed to the merger. This is a wrapper around an image crate's GenericImage
 /// and adds some additional functionality for the merger.

@@ -27,17 +27,21 @@ where
     /// Returns a reference to the underlying canvas.
     fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>;
 
-    /// Pushes a single image onto the canvas to be merged.
+    /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
+    /// having to hold all them in memory.
     /// # Arguments
-    /// * `image` - The image to push onto the canvas.
+    /// * `image` - The image to push onto the canvas. Its pixel type, `P`, must match the canvas, and its `Container` must be dereferenceable to
+    /// a slice of `P::Subpixel`s.
     fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
         Container: DerefMut<Target = [P::Subpixel]>;
 
-    /// Pushes a vector of images onto the canvas to be merged.
+    /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
+    /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
     /// # Arguments
     /// * `images` - The images to push onto the canvas. Note that the argument type is `&Vec<&Image<...>>`, this is because the func
-    /// does not need to take ownership of the images, it only needs to read them.
+    /// does not need to take ownership of the images, it only needs to read them. The pixel type, `P`, of the images must match the canvas, and
+    /// their `Container` must be dereferenceable to a slice of `P::Subpixel`s.
     fn bulk_push<Container>(
         &mut self,
         images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
@@ -154,8 +158,6 @@ where
         &self.canvas
     }
 
-    /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
-    /// having to hold all them in memory.
     fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
         Container: DerefMut<Target = [P::Subpixel]>,
@@ -168,8 +170,6 @@ where
         self.num_images += 1;
     }
 
-    /// Allows the merger to bulk push N images to the canvas. This is useful for when you have a large number of images to paste.
-    /// The downside is that you have to hold all of the images in memory at once, which can be a problem if you have a large number of images.
     fn bulk_push<Container>(
         &mut self,
         images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
