@@ -1,8 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use bytes::Bytes;
 use image::{ImageBuffer, ImageFormat, Pixel, Rgb, Rgba};
-use memmap::Mmap;
 
 pub type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
 pub type RgbImageBuffer<Container> = ImageBuffer<Rgb<u8>, Container>;
@@ -50,27 +48,20 @@ where
     }
 }
 
-pub trait FromWithFormat<T> {
-    fn from_with_format(t: T, format: ImageFormat) -> Self;
-}
+// TODO: Implement this
+// pub trait FromWithFormat<T> {
+//     fn from_with_format(t: T, format: ImageFormat) -> Self;
+// }
 
-// TODO: Make this impl<P: Pixel> ... for all Pixel types
-impl FromWithFormat<Bytes> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from_with_format(bytes: Bytes, format: ImageFormat) -> Self {
-        Self {
-            underlying: image::load_from_memory_with_format(&bytes, format)
-                .unwrap()
-                .to_rgba8(),
-        }
-    }
-}
-
-impl FromWithFormat<Mmap> for Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
-    fn from_with_format(mmap: Mmap, format: ImageFormat) -> Self {
-        Self {
-            underlying: image::load_from_memory_with_format(&mmap, format)
-                .unwrap()
-                .to_rgba8(),
-        }
-    }
-}
+// impl<Container, P> FromWithFormat<Container>
+//     for Image<P, ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>
+// where
+//     Container: Deref<Target = [u8]>,
+//     P: Pixel,
+// {
+//     fn from_with_format(bytes: Container, format: ImageFormat) -> Self {
+//         let dyn_image = image::load_from_memory_with_format(&bytes, format).unwrap();
+//         let image: ImageBuffer<P, Vec<P::Subpixel>> = todo!();
+//         Self { underlying: image }
+//     }
+// }
