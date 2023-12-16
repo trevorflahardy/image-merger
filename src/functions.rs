@@ -31,7 +31,7 @@ where
 
             let pixel = <P as Pixel>::from_slice(chunk);
             unsafe {
-                let mut handout = bottom.request_handout_unchecked(canvas_x, canvas_y);
+                let mut handout = bottom.request_handout(canvas_x, canvas_y);
                 handout.unsafe_put_pixel(*pixel);
             }
         });
