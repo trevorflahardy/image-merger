@@ -3,25 +3,41 @@ use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{marker::Sync, ops::DerefMut};
 
+/// Represents a point on any canvas.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Point {
     pub x: u32,
     pub y: u32,
 }
 
+/// Represents the padding between images on a canvas.
+/// # Fields
+/// * `x` - The padding between images on the x axis.
+/// * `y` - The padding between images on the y axis.
 pub type Padding = Point;
 
+/// The Merger trait that all mergers must implement. This trait allows the merger to paste images to a canvas.
+/// # Type Parameters
+/// * `P` - The pixel type of the underlying image.
 pub trait Merger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
 {
+    /// Returns a reference to the underlying canvas.
     fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>;
 
+    /// Pushes a single image onto the canvas to be merged.
+    /// # Arguments
+    /// * `image` - The image to push onto the canvas.
     fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>) -> ()
     where
         Container: DerefMut<Target = [P::Subpixel]>;
 
+    /// Pushes a vector of images onto the canvas to be merged.
+    /// # Arguments
+    /// * `images` - The images to push onto the canvas. Note that the argument type is `&Vec<&Image<...>>`, this is because the func
+    /// does not need to take ownership of the images, it only needs to read them.
     fn bulk_push<Container>(
         &mut self,
         images: &Vec<&Image<P, image::ImageBuffer<P, Container>>>,
@@ -30,6 +46,10 @@ where
         Container: DerefMut<Target = [P::Subpixel]> + Sync;
 }
 
+/// A fixed size merger that allows you to paste images onto a canvas. This merger is useful when you already know the size
+/// of all the images being pushed onto the canvas.
+/// # Type Parameters
+/// * `P` - The pixel type of the underlying image.
 pub struct FixedSizeMerger<P: Pixel> {
     canvas: ImageCell<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
     image_dimensions: (u32, u32), // The dimensions of the images being pasted (images must be a uniform size)
@@ -45,6 +65,12 @@ where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
 {
+    /// Constructs a new FixedSizeMerger.
+    /// # Arguments
+    /// * `image_dimensions` - The dimensions of the images being pasted (images must be a uniform size)
+    /// * `images_per_row` - The number of images per row.
+    /// * `rows` - The number of rows.
+    /// * `padding` - The padding between images, or None for no padding.
     pub fn new(
         image_dimensions: (u32, u32),
         images_per_row: u32,
@@ -71,6 +97,7 @@ where
         }
     }
 
+    /// Returns the number of images that have been pasted to the canvas.
     pub fn get_num_images(&self) -> u32 {
         self.num_images
     }
@@ -102,6 +129,8 @@ where
     }
 
     /// Removes an image from the canvas at a given index. Indexing starts at 0 and works left to right, top to bottom.
+    /// # Arguments
+    /// * `index` - The index of the image to remove.
     pub fn remove_image(&mut self, index: u32) {
         let offset_x = index % self.images_per_row;
         let offset_y = index / self.images_per_row;
