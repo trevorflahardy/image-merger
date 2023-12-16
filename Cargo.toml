@@ -2,6 +2,9 @@
 name = "image-merger"
 version = "0.0.1"
 edition = "2021"
+license = "MIT"
+description = "A tool to merge multiple images into one."
+repository = "."
 
 [profile.release]
 codegen-units = 1
