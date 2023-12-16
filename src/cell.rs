@@ -75,4 +75,9 @@ impl<'a, P: Pixel, U: image::GenericImage<Pixel = P>> Handout<'a, P, U> {
         let image = self.ic.get_image_mut();
         image.put_pixel(self.x, self.y, pixel);
     }
+
+    pub unsafe fn unsafe_put_pixel(&mut self, pixel: P) {
+        let image = self.ic.get_image_mut();
+        image.unsafe_put_pixel(self.x, self.y, pixel);
+    }
 }
