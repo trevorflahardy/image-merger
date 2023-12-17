@@ -108,8 +108,9 @@ where
     /// # Panics
     /// This function will panic if the given container cannot be transformed into an image with the given format.
     /// # Example
-    /// ```
-    /// use image_merger::{FromWithFormat, Image, Rgba, ImageBuffer};
+    /// ```no_run
+    /// use image_merger::{FromWithFormat, Image, Rgba};
+    /// use image::ImageBuffer;
     ///
     /// type RgbaImage = Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>>;
     ///
