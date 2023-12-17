@@ -6,24 +6,25 @@ static TOTAL_ROWS: u32 = 10;
 static TOTAL_IMAGES: u32 = 100;
 static PADDING_X: u32 = 10;
 static PADDING_Y: u32 = 10;
+static IMAGE_WIDTH: u32 = 100;
+static IMAGE_HEIGHT: u32 = 100;
 
 type RgbaImageBuffer = BufferedImage<Rgba<u8>>;
 
+// TODO: Move this to a test utils file, make it generic, and take in an image index for unique colors
+// across an entire image.
 fn generate_test_square() -> RgbaImageBuffer {
-    let rgba = |x: u8, y: u8| -> image::Rgba<u8> {
-        // Generates a gradient of RGBA based on the x and y coordinates.
-        image::Rgba([
-            255 - x,
-            255 - y,
-            ((255 * 2) as u32 - (x + y) as u32) as u8,
-            255,
-        ])
+    let color = |x: u32, y: u32| -> Rgba<u8> {
+        let r = x as u8;
+        let g = y as u8;
+        let b = (x + y) as u8;
+        Rgba([r, g, b, 255])
     };
 
-    let mut image = RgbaImageBuffer::new(100, 100);
-    for x in 0..100 {
-        for y in 0..100 {
-            image.put_pixel(x, y, rgba(x as u8, y as u8));
+    let mut image = RgbaImageBuffer::new(IMAGE_WIDTH, IMAGE_HEIGHT);
+    for x in 0..IMAGE_WIDTH {
+        for y in 0..IMAGE_HEIGHT {
+            image.put_pixel(x, y, color(x, y));
         }
     }
 
@@ -40,20 +41,18 @@ fn merge_images_slow(
     let total_rows = (total_images + images_per_row - 1) / images_per_row;
 
     let test_square = generate_test_square();
-    let test_square_width = test_square.width();
-    let test_square_height = test_square.height();
 
     let mut canvas = RgbaImageBuffer::new(
-        test_square_width * images_per_row + (padding_x * (images_per_row - 1)),
-        test_square_height * total_rows + (padding_y * (total_rows - 1)),
+        IMAGE_WIDTH * images_per_row + (padding_x * (images_per_row - 1)),
+        IMAGE_HEIGHT * total_rows + (padding_y * (total_rows - 1)),
     );
 
     for index in 0..total_images {
         let global_x = index % images_per_row;
         let global_y = index / images_per_row;
 
-        let x = (global_x * test_square_width) + (global_x * padding_x);
-        let y = (global_y * test_square_height) + (global_y * padding_y);
+        let x = (global_x * IMAGE_WIDTH) + (global_x * padding_x);
+        let y = (global_y * IMAGE_HEIGHT) + (global_y * padding_y);
 
         overlay(&mut *canvas, &*test_square, x as i64, y as i64)
     }
@@ -64,8 +63,8 @@ fn merge_images_slow(
 #[test]
 fn test_slow_merge() {
     let merged = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, 0, 0);
-    assert_eq!(merged.width(), IMAGES_PER_ROW * 100);
-    assert_eq!(merged.height(), IMAGES_PER_ROW * 100);
+    assert_eq!(merged.width(), IMAGES_PER_ROW * IMAGE_WIDTH);
+    assert_eq!(merged.height(), IMAGES_PER_ROW * IMAGE_HEIGHT);
 }
 
 #[test]
@@ -73,23 +72,27 @@ fn test_slow_merge_padding() {
     let merged = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
     assert_eq!(
         merged.width(),
-        IMAGES_PER_ROW * 100 + (PADDING_X * (IMAGES_PER_ROW - 1))
+        IMAGES_PER_ROW * IMAGE_WIDTH + (PADDING_X * (IMAGES_PER_ROW - 1))
     );
     assert_eq!(
         merged.height(),
-        TOTAL_ROWS * 100 + (PADDING_Y * (TOTAL_ROWS - 1))
+        TOTAL_ROWS * IMAGE_HEIGHT + (PADDING_Y * (TOTAL_ROWS - 1))
     );
 }
 
 #[test]
 fn test_push_merge() {
     let test_square = generate_test_square();
-    let slow_merge = merge_images_slow(10, 100, 0, 0);
+    let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> =
-        KnownSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
+    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+    );
 
-    for _ in 0..100 {
+    for _ in 0..TOTAL_IMAGES {
         merger.push(&test_square);
     }
 
@@ -99,11 +102,15 @@ fn test_push_merge() {
 #[test]
 fn test_bulk_push_merge() {
     let test_square = generate_test_square();
-    let slow_merge = merge_images_slow(10, 100, 0, 0);
+    let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> =
-        KnownSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
-    merger.bulk_push(&vec![&test_square; 100]);
+    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+    );
+    merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
 
     assert_eq!(merger.get_canvas(), &slow_merge);
 }
@@ -114,7 +121,7 @@ fn test_push_merge_padding() {
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
-        (100, 100),
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
         Some(Padding {
@@ -136,7 +143,7 @@ fn test_bulk_push_merge_padding() {
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
-        (100, 100),
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
         Some(Padding {
@@ -155,8 +162,12 @@ fn test_remove_image() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES - 1, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> =
-        KnownSizeMerger::new((100, 100), IMAGES_PER_ROW, TOTAL_IMAGES, None);
+    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+    );
 
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
     merger.remove_image(99);
