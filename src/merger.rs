@@ -47,11 +47,11 @@ where
         Container: DerefMut<Target = [P::Subpixel]> + Sync;
 }
 
-/// A fixed size merger that allows you to paste images onto a canvas. This merger is useful when you already know the size
+/// A known size merger that allows you to paste images onto a canvas. This merger is useful when you already know the size
 /// of all the images being pushed onto the canvas.
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
-pub struct FixedSizeMerger<P: Pixel> {
+pub struct KnownSizeMerger<P: Pixel> {
     canvas: ImageCell<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
     image_dimensions: (u32, u32), // The dimensions of the images being pasted (images must be a uniform size)
     num_images: u32,              // The number of images that have been pasted to the canvas
@@ -61,12 +61,12 @@ pub struct FixedSizeMerger<P: Pixel> {
     padding: Option<Padding>,
 }
 
-impl<P> FixedSizeMerger<P>
+impl<P> KnownSizeMerger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
 {
-    /// Constructs a new FixedSizeMerger.
+    /// Constructs a new KnownSizeMerger.
     /// # Arguments
     /// * `image_dimensions` - The dimensions of the images being pasted (images must be a uniform size)
     /// * `images_per_row` - The number of images per row.
@@ -147,7 +147,7 @@ where
     }
 }
 
-impl<P> Merger<P> for FixedSizeMerger<P>
+impl<P> Merger<P> for KnownSizeMerger<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,

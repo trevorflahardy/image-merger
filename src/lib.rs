@@ -2,7 +2,7 @@
 //! a very fast way to merge many images together. It does this this by utilizing parallel processing and by avoiding
 //! unnecessary copies.
 //!
-//! The main type of this crate is the [FixedSizeMerger](crate::FixedSizeMerger) struct, but, more will be added in the future.
+//! The main type of this crate is the [KnownSizeMerger](crate::KnownSizeMerger) struct, but, more will be added in the future.
 mod cell;
 mod core;
 mod functions;
