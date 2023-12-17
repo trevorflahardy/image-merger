@@ -1,5 +1,5 @@
 # image-merger
-This crate provides fast functionality for merging many images. It is built on top of the image crate and works to boost performance by utilizing parallel processing and avoiding unnecessary costly operations.
+This crate provides blazing fast functionality for merging many images. It is built on top of the image crate and works to boost performance by utilizing parallel processing and avoiding unnecessary costly operations.
 ### What does it mean to "merge" images?
 A Merger takes many small images and paces them onto a larger canvas in a specific pattern/location. As of today, this library only has one type of Merger, a `KnownSizeMerger` which focuses on performance as its top priority, but more will be added soon. An example of an output from a `KnownSizeMerger` is below, this is the general output from [the crate's tests](tests/known_size_merging.rs).
 
