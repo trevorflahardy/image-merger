@@ -1,4 +1,4 @@
-use image::{imageops::overlay, ImageBuffer, Rgba};
+use image::imageops::overlay;
 use image_merger::*;
 
 static IMAGES_PER_ROW: u32 = 10;
@@ -7,9 +7,9 @@ static TOTAL_IMAGES: u32 = 100;
 static PADDING_X: u32 = 10;
 static PADDING_Y: u32 = 10;
 
-type RgbaImageBuffer<Container> = ImageBuffer<Rgba<u8>, Container>;
+type RgbaImageBuffer = BufferedImage<Rgba<u8>>;
 
-fn generate_test_square() -> Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
+fn generate_test_square() -> RgbaImageBuffer {
     let rgba = |x: u8, y: u8| -> image::Rgba<u8> {
         // Generates a gradient of RGBA based on the x and y coordinates.
         image::Rgba([
@@ -20,7 +20,7 @@ fn generate_test_square() -> Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
         ])
     };
 
-    let mut image = Image::<Rgba<u8>, RgbaImageBuffer<Vec<u8>>>::new(100, 100);
+    let mut image = RgbaImageBuffer::new(100, 100);
     for x in 0..100 {
         for y in 0..100 {
             image.put_pixel(x, y, rgba(x as u8, y as u8));
@@ -35,7 +35,7 @@ fn merge_images_slow(
     total_images: u32,
     padding_x: u32,
     padding_y: u32,
-) -> Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> {
+) -> RgbaImageBuffer {
     // Cieling division for total rows.
     let total_rows = (total_images + images_per_row - 1) / images_per_row;
 
@@ -43,7 +43,7 @@ fn merge_images_slow(
     let test_square_width = test_square.width();
     let test_square_height = test_square.height();
 
-    let mut canvas = Image::<Rgba<u8>, RgbaImageBuffer<Vec<u8>>>::new(
+    let mut canvas = RgbaImageBuffer::new(
         test_square_width * images_per_row + (padding_x * (images_per_row - 1)),
         test_square_height * total_rows + (padding_y * (total_rows - 1)),
     );
@@ -110,7 +110,7 @@ fn test_bulk_push_merge() {
 
 #[test]
 fn test_push_merge_padding() {
-    let test_square: Image<Rgba<u8>, RgbaImageBuffer<Vec<u8>>> = generate_test_square();
+    let test_square: RgbaImageBuffer = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
