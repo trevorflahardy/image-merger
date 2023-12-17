@@ -15,8 +15,7 @@ pub fn paste<P, Container>(
     bottom: &ImageCell<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
     top: &Image<P, image::ImageBuffer<P, Container>>,
     loc: Point,
-) -> ()
-where
+) where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,
     Container: DerefMut<Target = [P::Subpixel]>,

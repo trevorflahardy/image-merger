@@ -33,6 +33,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
         self.underlying.into_inner()
     }
 
+    #[allow(clippy::mut_from_ref)]
     pub(crate) fn get_image_mut(&self) -> &mut Image<P, U> {
         unsafe { &mut *self.underlying.get() }
     }
@@ -59,7 +60,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
     /// handout.put_pixel(Rgb([255, 255, 255]));
     /// ```
     pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<P, U> {
-        Handout { ic: &self, x, y }
+        Handout { ic: self, x, y }
     }
 }
 
@@ -76,12 +77,18 @@ unsafe impl<P: Pixel, U: image::GenericImage<Pixel = P>> Send for ImageCell<P, U
 
 impl<'a, P: Pixel, U: image::GenericImage<Pixel = P>> Handout<'a, P, U> {
     /// Puts a pixel at the handout's coordinates.
+    /// # Arguments
+    /// * `pixel` - The pixel to place.
     pub fn put_pixel(&mut self, pixel: P) {
         let image = self.ic.get_image_mut();
         image.put_pixel(self.x, self.y, pixel);
     }
 
     /// Same as `put_pixel` but does not check bounds.
+    /// # Safety
+    /// This function is unsafe because it does not check bounds wen placing the pixel.
+    /// # Arguments
+    /// * `pixel` - The pixel to place.
     pub unsafe fn unsafe_put_pixel(&mut self, pixel: P) {
         let image = self.ic.get_image_mut();
         image.unsafe_put_pixel(self.x, self.y, pixel);
