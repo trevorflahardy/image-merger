@@ -13,4 +13,4 @@ The disparity in merging 10,000 images of 100x100 pixels between the merger and 
 
 <img src="https://github.com/NextChai/image-merger/assets/75498301/cc2dd6a8-6d6c-421d-89f2-7efa96119abc" width="1080" height="480">
 
-Over the 10,000 image interval, the image merger yielded an average **3.646x speed increase** over the linear implementation, working in roughly O(0.0082n) time, where n is the number of images to merge into a single image.
+Over the 10,000 image interval, the image merger yielded an average **3.646x speed increase** over the linear implementation. Effectively speaking, the combined average time, in ms, to generate a merged image with $n100^2$ pixels is $A(n)= 0.0082n$, where $n$ is the number of merged images. Moreover, the average time to paste a single given pixel, in ms, is $A(n)=0.0082n/100^2$, where $n$ is the number of merged images.
