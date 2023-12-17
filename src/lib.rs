@@ -10,7 +10,7 @@ mod merger;
 
 pub use crate::core::*;
 pub use crate::merger::*;
-pub use image::{Luma, LumaA, Pixel, Rgb, Rgba};
+pub use image::{ImageBuffer, Luma, LumaA, Pixel, Rgb, Rgba};
 
 /// Unsafe functions and types that are used internally by this crate. These are exposed for advanced users who want to
 /// implement their own merger. These functions and types are not guaranteed to be stable.
