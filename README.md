@@ -1,5 +1,5 @@
 # image-merger
-This crate provides faster functionality for image processing. It is built on top of the image crate and aims to provide a very fast way to merge many images. It does this by utilizing parallel processing and by avoiding unnecessary copies.
+This crate provides fast functionality for merging many images. It is built on top of the image crate and works to boost performance by utilizing parallel processing and avoiding unnecessary costly operations.
 
 
 ## Install
