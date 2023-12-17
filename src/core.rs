@@ -10,12 +10,12 @@ use image::{ImageBuffer, ImageFormat, Luma, LumaA, Pixel, Rgb, Rgba};
 /// # Example
 /// ```
 /// use image_merger::{Image, Rgba};
+/// use image::ImageBuffer;
 ///
-/// type RgbaImage = Image<Rgba<u8>, image::ImageBuffer<Rgba<u8>, Vec<u8>>>;
-/// let image: RgbaImage = RgbaImage::new(100, 100);
-///
+/// let image: Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>> = Image::new(100, 100);
 /// assert_eq!(image.capacity(), 100 * 100 * 4);
 /// ```
+/// Note that this is for example, in practicality, you should use the [BufferedImage](crate::BufferedImage) type alias.
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: U,
@@ -43,12 +43,10 @@ impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
 /// * `U` - The underlying image type.
 /// # Example
 /// ```
-/// use image_merger::{Image, Rgba};
+/// use image_merger::{Image, Rgba, BufferedImage};
 /// use image::ImageBuffer;
-/// use std::ops::Deref;
 ///
-/// type RgbaImage = Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>>;
-/// let image: RgbaImage = RgbaImage::new(100, 100);
+/// let image: BufferedImage<Rgba<u8>> = BufferedImage::new(100, 100);
 /// let underlying: &ImageBuffer<Rgba<u8>, Vec<u8>> = &*image;
 /// ```
 impl<P: Pixel, U: image::GenericImage<Pixel = P>> Deref for Image<P, U> {
@@ -71,14 +69,12 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> DerefMut for Image<P, U> {
 /// * `Container` - The underlying image buffer type. This must be dereferenceable to a slice of the underlying image's subpixels.
 /// # Example
 /// ```
-/// use image_merger::{Image, Rgba};
+/// use image_merger::{Image, Rgba, BufferedImage};
 /// use image::ImageBuffer;
 ///
-/// type RgbaImage = Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>>;
-///
 /// let buf: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(100, 100);
-/// let image: RgbaImage = Image::from(buf);
-/// ````
+/// let image: BufferedImage<Rgba<u8>> = BufferedImage::from(buf);
+/// ```
 impl<P, Container> From<ImageBuffer<P, Container>> for Image<P, ImageBuffer<P, Container>>
 where
     P: Pixel,
@@ -109,13 +105,11 @@ where
     /// This function will panic if the given container cannot be transformed into an image with the given format.
     /// # Example
     /// ```no_run
-    /// use image_merger::{FromWithFormat, Image, Rgba};
+    /// use image_merger::{FromWithFormat, Image, Rgba, BufferedImage};
     /// use image::ImageBuffer;
     ///
-    /// type RgbaImage = Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>>;
-    ///
     /// let container = vec![0, 0, 0, 255, 255, 255, 255, 255];
-    /// let image: RgbaImage = Image::from_with_format(container, image::ImageFormat::Png);
+    /// let image: BufferedImage<Rgba<u8>> = BufferedImage::from_with_format(container, image::ImageFormat::Png);
     /// ```
     fn from_with_format(container: Container, format: ImageFormat) -> Self;
 }

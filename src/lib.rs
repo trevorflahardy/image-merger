@@ -18,3 +18,19 @@ pub mod raw {
     pub use crate::cell::*;
     pub use crate::functions::*;
 }
+
+/// A type alias for an [Image](Image) with a given [pixel][Pixel] type. This simplifies the type signature
+/// of most Image declarations.
+/// # Type Parameters
+/// * `P` - The pixel type of the underlying image.
+/// # Example
+/// ```
+/// use image_merger::{Image, Rgba, BufferedImage};
+/// use image::ImageBuffer;
+///
+/// // Declaring an image without a type alias.
+/// let image: Image<Rgba<u8>, ImageBuffer<Rgba<u8>, Vec<u8>>> = Image::new(100, 100);
+///
+/// // Declaring an image with a type alias.
+/// let image: BufferedImage<Rgba<u8>> = BufferedImage::new(100, 100);
+pub type BufferedImage<P> = Image<P, ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>;
