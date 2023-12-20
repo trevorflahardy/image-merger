@@ -27,6 +27,9 @@ where
     /// Returns a reference to the underlying canvas.
     fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>;
 
+    /// Consumes the underlying merger and returns the canvas.
+    fn into_canvas(self) -> Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>>;
+
     /// Allows the merger to push an image to the canvas. This can be used in a loop to paste a large number of images without
     /// having to hold all them in memory.
     /// # Arguments
@@ -154,6 +157,10 @@ where
 {
     fn get_canvas(&self) -> &Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> {
         &self.canvas
+    }
+
+    fn into_canvas(self) -> Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> {
+        self.canvas.into_inner()
     }
 
     fn push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>)

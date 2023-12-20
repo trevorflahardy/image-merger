@@ -35,6 +35,11 @@ impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
             underlying: ImageBuffer::new(width, height),
         }
     }
+
+    /// Consumes the image and returns the underlying image buffer.
+    pub fn into_buffer(self) -> ImageBuffer<P, Vec<P::Subpixel>> {
+        self.underlying
+    }
 }
 
 /// Dereferences to the underlying image.
