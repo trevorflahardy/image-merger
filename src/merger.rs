@@ -197,5 +197,6 @@ where
         });
 
         self.last_pasted_index += images.len() as i32;
+        self.num_images += images.len() as u32;
     }
 }
