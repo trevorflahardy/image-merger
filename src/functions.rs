@@ -39,3 +39,24 @@ pub fn paste<P, Container>(
             }
         });
 }
+
+/// The library's underlying rezsize method for nearest neighbor. This function
+/// runs in O(n), but it is done in parallel to speed up the process in larger images.
+/// The drawback to this is that the image is not resized in place, but rather a new
+/// one is created - so you will hold two images in memory at once.
+/// # Arguments
+/// * `image` - The image to resize.
+/// * `new_width` - The new width of the image.
+/// * `new_height` - The new height of the image.
+pub fn resize_nearest_neighbor<P, Container>(
+    _image: &Image<P, image::ImageBuffer<P, Container>>,
+    _new_width: u32,
+    _new_height: u32,
+) -> Image<P, image::ImageBuffer<P, Container>>
+where
+    P: Pixel + Sync,
+    <P as Pixel>::Subpixel: Sync,
+    Container: DerefMut<Target = [P::Subpixel]>,
+{
+    todo!();
+}
