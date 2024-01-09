@@ -36,6 +36,14 @@ impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
         }
     }
 
+    // Creates a new image from a given pixel, where the generated image will have the given width and height,
+    // and the image will have the color of the pixel.
+    pub fn new_from_pixel(width: u32, height: u32, pixel: P) -> Self {
+        Self {
+            underlying: ImageBuffer::from_pixel(width, height, pixel),
+        }
+    }
+
     /// Consumes the image and returns the underlying image buffer.
     pub fn into_buffer(self) -> ImageBuffer<P, Vec<P::Subpixel>> {
         self.underlying
