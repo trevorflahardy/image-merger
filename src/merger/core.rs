@@ -48,3 +48,30 @@ where
     where
         Container: DerefMut<Target = [P::Subpixel]> + Sync;
 }
+
+/// A trait that provides information about the merger. This is useful for when you want to know the
+///  dimensions of the canvas, the number of images per row, etc.
+pub trait MergerInfo {
+    /// Returns the number of images per row.
+    fn get_images_per_row(&self) -> u32;
+
+    // Returns the total number of images on the canvas
+    fn get_total_images(&self) -> u32;
+
+    /// Returns the dimensions of the images being pasted to the canvas.
+    fn get_image_dimensions(&self) -> (u32, u32);
+
+    /// Returns the total number of rows on the canvas.
+    fn get_total_rows(&self) -> u32 {
+        (self.get_total_images() + self.get_images_per_row() - 1) / self.get_images_per_row()
+    }
+
+    /// Returns the dimensions of the canvas.
+    fn get_canvas_dimensions(&self) -> (u32, u32) {
+        let (image_width, image_height) = self.get_image_dimensions();
+        (
+            image_width * self.get_images_per_row(),
+            image_height * self.get_total_rows(),
+        )
+    }
+}
