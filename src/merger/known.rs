@@ -11,8 +11,9 @@ use std::{marker::Sync, ops::DerefMut};
 pub struct KnownSizeMerger<P: Pixel> {
     canvas: ImageCell<P, image::ImageBuffer<P, Vec<P::Subpixel>>>,
     image_dimensions: (u32, u32), // The dimensions of the images being pasted (images must be a uniform size)
-    num_images: u32,              // The number of images that have been pasted to the canvas
     images_per_row: u32,          // The number of pages per row.
+    total_rows: u32,              // The total number of rows
+    num_images: u32,              // The number of images that have been pasted to the canvas
     last_pasted_index: i32, // The index of the last pasted image, starts at -1 if not images have been pasted.
     padding: Option<Padding>,
 }
@@ -24,8 +25,8 @@ impl<P: Pixel> MergerInfo for KnownSizeMerger<P> {
         self.images_per_row
     }
 
-    fn get_total_images(&self) -> u32 {
-        self.num_images
+    fn get_total_rows(&self) -> u32 {
+        self.total_rows
     }
 
     fn get_image_dimensions(&self) -> (u32, u32) {
@@ -42,16 +43,14 @@ where
     /// # Arguments
     /// * `image_dimensions` - The dimensions of the images being pasted (images must be a uniform size)
     /// * `images_per_row` - The number of images per row.
-    /// * `total_images` - The total numbr of images to be in the final canvas.
+    /// * `total_rows` - The total number of rows of images.
     /// * `padding` - The padding between images, or None for no padding.
     pub fn new(
         image_dimensions: (u32, u32),
         images_per_row: u32,
-        total_images: u32,
+        total_rows: u32,
         padding: Option<Padding>,
     ) -> Self {
-        let total_rows = (total_images + images_per_row - 1) / images_per_row;
-
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
 
@@ -65,6 +64,7 @@ where
             image_dimensions,
             num_images: 0,
             images_per_row,
+            total_rows,
             last_pasted_index: -1,
             padding,
         }
