@@ -1,4 +1,4 @@
-use super::core::{Merger, Padding, Point};
+use super::core::{Merger, MergerInfo, Padding, Point};
 use crate::{cell::ImageCell, core::Image, functions::paste};
 use image::Pixel;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -14,8 +14,23 @@ pub struct KnownSizeMerger<P: Pixel> {
     num_images: u32,              // The number of images that have been pasted to the canvas
     images_per_row: u32,          // The number of pages per row.
     last_pasted_index: i32, // The index of the last pasted image, starts at -1 if not images have been pasted.
-    total_rows: u32,        // The total number of rows currently on the canvas.
     padding: Option<Padding>,
+}
+
+/// The implementation of the MergerInfo trait for KnownSizeMerger. Holds some useful methods for getting information
+/// about the merger.
+impl<P: Pixel> MergerInfo for KnownSizeMerger<P> {
+    fn get_images_per_row(&self) -> u32 {
+        self.images_per_row
+    }
+
+    fn get_total_images(&self) -> u32 {
+        self.num_images
+    }
+
+    fn get_image_dimensions(&self) -> (u32, u32) {
+        self.image_dimensions
+    }
 }
 
 impl<P> KnownSizeMerger<P>
@@ -51,7 +66,6 @@ where
             num_images: 0,
             images_per_row,
             last_pasted_index: -1,
-            total_rows,
             padding,
         }
     }
@@ -63,7 +77,7 @@ where
 
     #[inline(always)]
     fn additional_space(&self) -> u32 {
-        (self.images_per_row * self.total_rows) - self.num_images
+        (self.images_per_row * self.get_total_rows()) - self.num_images
     }
 
     fn get_paste_coordinates_unchecked(&self, index: u32) -> (u32, u32) {
