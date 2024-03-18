@@ -2,7 +2,7 @@
 //! It is built on top of the image crate and works to boost performance by utilizing parallel processing and
 //! avoiding unnecessary costly operations.
 //!
-//! The main type of this crate is the [KnownSizeMerger](crate::KnownSizeMerger) struct, but, more will be added in the future.
+//! The main type of this crate is the [KnownSizeMerger] struct, but, more will be added in the future.
 mod cell;
 mod core;
 mod functions;
@@ -19,7 +19,7 @@ pub mod raw {
     pub use crate::functions::*;
 }
 
-/// A type alias for an [Image](Image) with a given [pixel][Pixel] type. This simplifies the type signature
+/// A type alias for an [Image] with a given [pixel][Pixel] type. This simplifies the type signature
 /// of most Image declarations.
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
