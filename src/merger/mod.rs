@@ -1,7 +1,7 @@
 mod core;
-mod fixed;
 mod known;
+mod resize;
 
 pub use core::*;
-pub use fixed::*;
 pub use known::*;
+pub use resize::*;
