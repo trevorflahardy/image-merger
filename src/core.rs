@@ -28,24 +28,35 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     }
 }
 
-impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
+impl<P, Container> Image<P, ImageBuffer<P, Container>>
+where
+    P: Pixel + Sync,
+    <P as Pixel>::Subpixel: Sync,
+    Container: DerefMut<Target = [P::Subpixel]>,
+{
     /// Creates a new image with the given width and height.
     pub fn new(width: u32, height: u32) -> Self {
-        Self {
-            underlying: ImageBuffer::new(width, height),
-        }
+        todo!();
+
+        // let container_size = (width * height) as usize * <P as Pixel>::CHANNEL_COUNT as usize;
+        // let container: Container = vec![<P as Pixel>::CHANNEL_COUNT; container_size].into();
+        //
+        // Self {
+        //     underlying: ImageBuffer::from_raw(width, height, container).unwrap(),
+        // }
     }
 
     // Creates a new image from a given pixel, where the generated image will have the given width and height,
     // and the image will have the color of the pixel.
     pub fn new_from_pixel(width: u32, height: u32, pixel: P) -> Self {
-        Self {
-            underlying: ImageBuffer::from_pixel(width, height, pixel),
-        }
+        todo!();
+        // Self {
+        //     underlying: ImageBuffer::from_pixel(width, height, pixel),
+        // }
     }
 
     /// Consumes the image and returns the underlying image buffer.
-    pub fn into_buffer(self) -> ImageBuffer<P, Vec<P::Subpixel>> {
+    pub fn into_buffer(self) -> ImageBuffer<P, Container> {
         self.underlying
     }
 }
