@@ -24,7 +24,7 @@ where
     ///
     /// The `Container` type must implement `DerefMut` with a target of `[P::Subpixel]`.
     ///
-    fn resized_push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>)
+    fn resize_push<Container>(&mut self, image: &Image<P, image::ImageBuffer<P, Container>>)
     where
         Container: DerefMut<Target = [P::Subpixel]>,
     {
@@ -54,7 +54,7 @@ where
     ///
     /// The `Container` type must implement `DerefMut` with a target of `[P::Subpixel]` and `Sync`.
     ///
-    fn resized_bulk_push<Container>(
+    fn resize_bulk_push<Container>(
         &mut self,
         images: Vec<Image<P, image::ImageBuffer<P, Container>>>,
     ) where
@@ -83,6 +83,8 @@ where
     }
 }
 
+/// Auto implementation of `ResizeMerger` for every merger that implements `Merger` and `MergerInfo`.
+/// This is done so that every merger can resize images before pushing them onto the canvas.
 impl<P, T> ResizeMerger<P> for T
 where
     P: Pixel + Sync,
