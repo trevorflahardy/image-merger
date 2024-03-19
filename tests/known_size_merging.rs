@@ -83,7 +83,7 @@ fn test_slow_merge_padding() {
 #[test]
 fn test_push_merge() {
     let test_square = generate_test_square();
-    let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
+    let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, 0, 0);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
@@ -115,7 +115,7 @@ fn test_push_merge_fail() {
 #[test]
 fn test_bulk_push_merge() {
     let test_square = generate_test_square();
-    let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
+    let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, 0, 0);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
@@ -130,7 +130,7 @@ fn test_bulk_push_merge() {
 
 #[test]
 fn test_push_merge_padding() {
-    let test_square: RgbaImageBuffer = generate_test_square();
+    let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
