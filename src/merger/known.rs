@@ -95,7 +95,7 @@ where
 
     fn get_next_paste_coordinates(&mut self) -> (u32, u32) {
         if self.additional_space() == 0 {
-            panic!("No more space on the canvas!");
+            panic!("No more space on the canvas.");
         }
 
         self.get_paste_coordinates_unchecked((self.last_pasted_index + 1) as u32)

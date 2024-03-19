@@ -88,7 +88,7 @@ fn test_push_merge() {
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
-        TOTAL_IMAGES,
+        TOTAL_ROWS,
         None,
     );
 
@@ -100,6 +100,19 @@ fn test_push_merge() {
 }
 
 #[test]
+#[should_panic(expected = "No more space on the canvas.")]
+fn test_push_merge_fail() {
+    let test_square = generate_test_square();
+
+    let mut merger: KnownSizeMerger<Rgba<u8>> =
+        KnownSizeMerger::new((IMAGE_WIDTH, IMAGE_HEIGHT), 1, 1, None);
+
+    for _ in 0..2 {
+        merger.push(&test_square);
+    }
+}
+
+#[test]
 fn test_bulk_push_merge() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
@@ -107,7 +120,7 @@ fn test_bulk_push_merge() {
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
-        TOTAL_IMAGES,
+        TOTAL_ROWS,
         None,
     );
     merger.bulk_push(&vec![&test_square; TOTAL_IMAGES as usize]);
@@ -123,7 +136,7 @@ fn test_push_merge_padding() {
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
-        TOTAL_IMAGES,
+        TOTAL_ROWS,
         Some(Padding {
             x: PADDING_X,
             y: PADDING_Y,
@@ -145,7 +158,7 @@ fn test_bulk_push_merge_padding() {
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
-        TOTAL_IMAGES,
+        TOTAL_ROWS,
         Some(Padding {
             x: PADDING_X,
             y: PADDING_Y,
@@ -165,7 +178,7 @@ fn test_remove_image() {
     let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
-        TOTAL_IMAGES,
+        TOTAL_ROWS,
         None,
     );
 
