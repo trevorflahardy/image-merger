@@ -20,7 +20,7 @@ pub fn paste<P, Container>(
     <P as Pixel>::Subpixel: Sync,
     Container: DerefMut<Target = [P::Subpixel]>,
 {
-    // Go through each pixel in the image (at once), grab its relatve location on the canvas,
+    // Go through each pixel in the image (at once), grab its relative location on the canvas,
     // and alter the canvas underlying buffer to reflect the new pixel.
     let image_width = top.width();
     top.par_chunks_exact(<P as Pixel>::CHANNEL_COUNT as usize)
@@ -40,7 +40,7 @@ pub fn paste<P, Container>(
         });
 }
 
-/// The library's underlying rezsize method for nearest neighbor. This function
+/// The library's underlying resize method for nearest neighbor. This function
 /// runs in O(n), but it is done in parallel to speed up the process in larger images.
 /// The drawback to this is that the image is not resized in place, but rather a new
 /// one is created - so you will hold two images in memory at once.
