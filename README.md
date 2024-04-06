@@ -1,7 +1,8 @@
-# image-merger
-This crate provides blazing fast functionality for merging many images. It is built on top of the image crate and works to boost performance by utilizing parallel processing and avoiding unnecessary costly operations.
+![image-merger-banner](https://github.com/trevorflahardy/image-merger/assets/75498301/6a9fbd72-2837-44ea-ba4f-f50d7f4525fe)
+
+Welcome to Image Merger! A crate that provides blazing-fast functionality for merging many images. It is built on top of the image crate and works to boost performance by utilizing parallel processing and avoiding unnecessary costly operations.
 ### What does it mean to "merge" images?
-A Merger takes many small images and paces them onto a larger canvas in a specific pattern/location. As of today, this library only has one type of Merger, a `KnownSizeMerger` which focuses on performance as its top priority, but more will be added soon. An example of an output from a `KnownSizeMerger` is below, this is the general output from [the crate's tests](tests/known_size_merging.rs).
+A Merger paces many small images onto a larger canvas in a specific pattern/location. As of today, this library only has one type of Merger, a `KnownSizeMerger` which focuses on performance as its top priority, but more will be added soon. An example of an output from a `KnownSizeMerger` is below, this is the general output from [the crate's tests](tests/known_size_merging.rs).
 
 <img src="https://github.com/NextChai/image-merger/assets/75498301/a70fc92f-e5a6-4834-8ab0-37363cb2d178" width="250" height="250">
 <img src="https://github.com/NextChai/image-merger/assets/75498301/ecdf0a62-e805-45ac-a2fc-5b4464c20f80" width="250" height="250">
