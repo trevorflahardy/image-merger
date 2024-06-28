@@ -6,13 +6,14 @@ use rayon::{
 };
 use std::{marker::Sync, ops::DerefMut};
 
-/// The library's underlying paste method.
+/// The library's underlying paste method. This is only used internally and should not be used by the user, but is exposed
+/// through the raw module for documentation purposes.
 /// # Arguments
 /// * `bottom` - The image to paste onto.
 /// * `top` - The image to paste.
 /// * `loc` - The location to paste the top image at.
 pub fn paste<P, Container>(
-    bottom: &ImageCell<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
+    bottom: &ImageCell<P, image::ImageBuffer<P, Container>>,
     top: &Image<P, image::ImageBuffer<P, Container>>,
     loc: Point,
 ) where
