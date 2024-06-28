@@ -16,7 +16,7 @@ use std::ops::DerefMut;
 ///
 /// # Example
 /// ```
-/// use crate::image_merger::{Merger, KnownSizeMerger, Image, Rgb};
+/// use image_merger::{Merger, KnownSizeMerger, Image, Rgb};
 ///
 /// let mut merger: KnownSizeMerger<Rgb<u8>, _> = KnownSizeMerger::new((100, 100), 5, 10, None);
 /// let image = Image::new(100, 100);
@@ -56,6 +56,14 @@ where
     /// # Returns
     /// * `Some` - If the merger was successfully created.
     /// * `None` - If the merger could not be created. This will happen if the container is not large enough to fit all the images.
+    ///
+    /// # Example
+    /// ```
+    /// use image_merger::{KnownSizeMerger, Rgb};
+    ///
+    /// let container = vec![0 as u8; 100 * 100 * 5 * 10 * 3];
+    /// let merger: KnownSizeMerger<Rgb<u8>, _> = KnownSizeMerger::new_from_raw((100, 100), 5, 10, None, container).expect("Could not create merger!");
+    /// ```
     pub fn new_from_raw(
         image_dimensions: (u32, u32),
         images_per_row: u32,
