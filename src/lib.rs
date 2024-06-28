@@ -19,8 +19,9 @@ pub mod raw {
     pub use crate::functions::*;
 }
 
-/// A type alias for an [Image](Image) with a given [pixel][Pixel] type. This simplifies the type signature
-/// of most Image declarations.
+/// A convenience type alias for an [Image](Image) with a given [pixel][Pixel] type. This simplifies the type signature
+/// of most Image declarations. This type alias assumes you are using a Vec<T> as the underlying image buffer.
+///
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
 /// # Example
