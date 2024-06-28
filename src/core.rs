@@ -44,11 +44,7 @@ where
     /// # Returns
     /// An [Image](Image) with the given pixel and buffer type. Will return None if the buffer is not large enough to fit the image.
     pub fn new_from_raw(width: u32, height: u32, container: Container) -> Option<Self> {
-        if let Some(image) = ImageBuffer::from_raw(width, height, container) {
-            Some(Self { underlying: image })
-        } else {
-            None
-        }
+        ImageBuffer::from_raw(width, height, container).map(|image| Self { underlying: image })
     }
 
     /// Consumes the image and returns the underlying image buffer.

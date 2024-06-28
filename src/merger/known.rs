@@ -59,23 +59,20 @@ where
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
 
-        if let Some(canvas) = Image::new_from_raw(
+        Image::new_from_raw(
             (image_dimensions.0 * images_per_row) + image_gaps_x,
             (image_dimensions.1 * total_rows) + image_gaps_y,
             container,
-        ) {
-            Some(Self {
-                canvas: ImageCell::new(canvas),
-                image_dimensions,
-                num_images: 0,
-                images_per_row,
-                last_pasted_index: -1,
-                total_rows,
-                padding,
-            })
-        } else {
-            None
-        }
+        )
+        .map(|canvas| Self {
+            canvas: ImageCell::new(canvas),
+            image_dimensions,
+            num_images: 0,
+            images_per_row,
+            last_pasted_index: -1,
+            total_rows,
+            padding,
+        })
     }
 
     /// Returns the number of images that have been pasted to the canvas.
