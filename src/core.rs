@@ -26,6 +26,11 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     pub fn capacity(&self) -> usize {
         return self.underlying.pixels().count() * <P as Pixel>::CHANNEL_COUNT as usize;
     }
+
+    /// Consumes the image and returns the underlying image buffer.
+    pub fn into_buffer(self) -> U {
+        self.underlying
+    }
 }
 
 impl<P, Container> Image<P, ImageBuffer<P, Container>>
@@ -45,11 +50,6 @@ where
     /// An [Image](Image) with the given pixel and buffer type. Will return None if the buffer is not large enough to fit the image.
     pub fn new_from_raw(width: u32, height: u32, container: Container) -> Option<Self> {
         ImageBuffer::from_raw(width, height, container).map(|image| Self { underlying: image })
-    }
-
-    /// Consumes the image and returns the underlying image buffer.
-    pub fn into_buffer(self) -> ImageBuffer<P, Container> {
-        self.underlying
     }
 }
 
