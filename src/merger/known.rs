@@ -13,6 +13,15 @@ use std::ops::DerefMut;
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
 /// * `Container` - The underlying image buffer type. This must be dereferenceable to a slice of the underlying image's subpixels.
+///
+/// # Example
+/// ```
+/// use crate::image_merger::{Merger, KnownSizeMerger, Image, Rgb};
+///
+/// let mut merger: KnownSizeMerger<Rgb<u8>, _> = KnownSizeMerger::new((100, 100), 5, 10, None);
+/// let image = Image::new(100, 100);
+/// merger.bulk_push(&[&image, &image, &image, &image, &image]);
+/// ```
 pub struct KnownSizeMerger<P, Container>
 where
     P: Pixel,
