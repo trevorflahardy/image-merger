@@ -28,6 +28,35 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     }
 }
 
+impl<P, Container> Image<P, ImageBuffer<P, Container>>
+where
+    P: Pixel,
+    Container: DerefMut<Target = [P::Subpixel]>,
+{
+    /// Creates a new image from a raw buffer. The buffer must be large enough to fit the image. Normally, you should use the
+    /// `new` method to create a new image, as it is more idiomatic, unless you need to manually create an image from a raw buffer.
+    ///
+    /// # Arguments
+    /// * `width` - The width of the image.
+    /// * `height` - The height of the image.
+    /// * `container` - The raw buffer to create the image from.
+    ///
+    /// # Returns
+    /// An [Image](Image) with the given pixel and buffer type. Will return None if the buffer is not large enough to fit the image.
+    pub fn new_from_raw(width: u32, height: u32, container: Container) -> Option<Self> {
+        if let Some(image) = ImageBuffer::from_raw(width, height, container) {
+            Some(Self { underlying: image })
+        } else {
+            None
+        }
+    }
+
+    /// Consumes the image and returns the underlying image buffer.
+    pub fn into_buffer(self) -> ImageBuffer<P, Container> {
+        self.underlying
+    }
+}
+
 impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
     /// Creates a new image with the given width and height.
     pub fn new(width: u32, height: u32) -> Self {
@@ -43,17 +72,14 @@ impl<P: Pixel> Image<P, ImageBuffer<P, Vec<P::Subpixel>>> {
             underlying: ImageBuffer::from_pixel(width, height, pixel),
         }
     }
-
-    /// Consumes the image and returns the underlying image buffer.
-    pub fn into_buffer(self) -> ImageBuffer<P, Vec<P::Subpixel>> {
-        self.underlying
-    }
 }
 
 /// Dereferences to the underlying image.
+///
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
 /// * `U` - The underlying image type.
+///
 /// # Example
 /// ```
 /// use image_merger::{Image, Rgba, BufferedImage};
@@ -77,9 +103,11 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> DerefMut for Image<P, U> {
 }
 
 /// A trait that allows the creation of an [Image](Image) from a preexisting [image::ImageBuffer](image::ImageBuffer).
+///
 /// # Type Parameters
 /// * `P` - The pixel type of the underlying image.
 /// * `Container` - The underlying image buffer type. This must be dereferenceable to a slice of the underlying image's subpixels.
+///
 /// # Example
 /// ```
 /// use image_merger::{Image, Rgba, BufferedImage};
@@ -103,7 +131,7 @@ where
 
 /// A trait that allows the creation of an Image from a container of bytes using a specified image format.
 /// # Type Parameters
-/// * `T` - The container type. This must be dereferenceable to a slice of bytes.
+/// * `Container` - The container type. This must be dereferenceable to a slice of bytes.
 pub trait FromWithFormat<Container>
 where
     Container: Deref<Target = [u8]>,
