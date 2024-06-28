@@ -85,7 +85,7 @@ fn test_push_merge() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
@@ -104,7 +104,7 @@ fn test_bulk_push_merge() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(10, TOTAL_IMAGES, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
@@ -120,7 +120,7 @@ fn test_push_merge_padding() {
     let test_square: RgbaImageBuffer = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
@@ -142,7 +142,7 @@ fn test_bulk_push_merge_padding() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES, PADDING_X, PADDING_Y);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
@@ -162,7 +162,7 @@ fn test_remove_image() {
     let test_square = generate_test_square();
     let slow_merge = merge_images_slow(IMAGES_PER_ROW, TOTAL_IMAGES - 1, 0, 0);
 
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
@@ -173,4 +173,41 @@ fn test_remove_image() {
     merger.remove_image(99);
 
     assert_eq!(merger.get_canvas(), &slow_merge);
+}
+
+#[test]
+fn test_raw_create_image() {
+    type P = Rgb<u8>;
+    let container: Vec<u8> =
+        vec![0; (IMAGE_WIDTH * IMAGE_HEIGHT * <P as image::Pixel>::CHANNEL_COUNT as u32) as usize];
+
+    let image: Option<BufferedImage<P>> = Image::new_from_raw(IMAGE_WIDTH, IMAGE_HEIGHT, container);
+    assert!(image.is_some());
+
+    let image = image.unwrap();
+    assert_eq!(image.width(), IMAGE_WIDTH);
+    assert_eq!(image.height(), IMAGE_HEIGHT);
+}
+
+#[test]
+fn test_raw_known_size_merger_create() {
+    type P = Rgb<u8>;
+    let container = vec![
+        0;
+        (IMAGE_WIDTH * IMAGE_HEIGHT * <P as image::Pixel>::CHANNEL_COUNT as u32 * TOTAL_IMAGES)
+            as usize
+    ];
+
+    let merger: Option<KnownSizeMerger<P, Vec<u8>>> = KnownSizeMerger::new_from_raw(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+        container,
+    );
+    assert!(merger.is_some());
+
+    let merger = merger.unwrap();
+    assert_eq!(merger.get_canvas().width(), IMAGE_WIDTH * IMAGES_PER_ROW);
+    assert_eq!(merger.get_canvas().height(), IMAGE_HEIGHT * TOTAL_ROWS);
 }
