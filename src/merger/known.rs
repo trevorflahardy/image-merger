@@ -123,7 +123,7 @@ where
     /// # Returns
     /// * `Some` - If the image was successfully removed.
     /// * `None` - If the image could not be removed. This will happen if the container is not large enough to fit the image.
-    fn remove_image_raw(&mut self, index: u32, container: Container) -> Option<()> {
+    pub fn remove_image_raw(&mut self, index: u32, container: Container) -> Option<()> {
         let offset_x = index % self.images_per_row;
         let offset_y = index / self.images_per_row;
 
