@@ -20,7 +20,7 @@ fn main() -> () {
 
     // Create an instane of our merger, this is what will manage the merging of our images. It takes one generic
     // parameter, T, which denotes the type of pixel the canvas and pasted images have.
-    let mut merger: KnownSizeMerger<Rgba<u8>> = KnownSizeMerger::new(
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
         IMAGES_PER_ROW,
         TOTAL_IMAGES,
