@@ -2,7 +2,7 @@ use super::core::{Merger, Padding, Point};
 use crate::{
     cell::ImageCell,
     functions::{paste, resize_nearest_neighbor},
-    Image, ResizableMerger,
+    BufferedImage, Image, ResizableMerger,
 };
 
 use image::Pixel;
@@ -221,7 +221,7 @@ where
         let x = offset_x * self.image_dimensions.0;
         let y = offset_y * self.image_dimensions.1;
 
-        let black_image: Image<P, image::ImageBuffer<P, Vec<P::Subpixel>>> =
+        let black_image: BufferedImage<P> =
             Image::new(self.image_dimensions.0, self.image_dimensions.1);
 
         paste(&self.canvas, &black_image, Point { x, y });
@@ -279,32 +279,24 @@ where
     P: Pixel + Sync + Send,
     <P as Pixel>::Subpixel: Sync + Send,
 {
-    fn push_resized(
-        &mut self,
-        image: &Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
-    ) {
+    fn push_resized(&mut self, image: &BufferedImage<P>) {
         let (width, height) = image.dimensions();
         let resized = resize_nearest_neighbor(image, width, height);
         self.push(&resized);
     }
 
-    fn bulk_push_resized(
-        &mut self,
-        images: &[&Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>],
-    ) {
+    fn bulk_push_resized(&mut self, images: &[&BufferedImage<P>]) {
         // Resize all the images in parallel then push them
-        let resized_images: Vec<Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>> =
-            images
-                .into_par_iter()
-                .map(|image| {
-                    let (width, height) = image.dimensions();
-                    resize_nearest_neighbor(image, width, height)
-                })
-                .collect();
+        let resized_images: Vec<BufferedImage<P>> = images
+            .into_par_iter()
+            .map(|image| {
+                let (width, height) = image.dimensions();
+                resize_nearest_neighbor(image, width, height)
+            })
+            .collect();
 
         // Convert Vec<T> to [&T] for the bulk push method
-        let resized_images_ref: Vec<&Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>> =
-            resized_images.iter().collect();
+        let resized_images_ref: Vec<&BufferedImage<P>> = resized_images.iter().collect();
 
         self.bulk_push(&resized_images_ref);
     }

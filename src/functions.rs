@@ -1,4 +1,4 @@
-use crate::{cell::ImageCell, core::Image, merger::Point};
+use crate::{cell::ImageCell, core::Image, merger::Point, BufferedImage};
 use image::Pixel;
 use rayon::{
     iter::IntoParallelIterator,
@@ -54,7 +54,7 @@ pub fn resize_nearest_neighbor<P, U>(
     image: &Image<P, U>,
     nwidth: u32,
     nheight: u32,
-) -> Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>
+) -> BufferedImage<P>
 where
     P: Pixel + Sync,
     <P as Pixel>::Subpixel: Sync,

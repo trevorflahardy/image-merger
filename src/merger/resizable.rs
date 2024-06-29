@@ -1,4 +1,4 @@
-use crate::Image;
+use crate::BufferedImage;
 use image::Pixel;
 
 /// A trait that allows a Merger to resize images before pasting them onto the canvas. It allows
@@ -25,16 +25,10 @@ where
     /// Pushes an image onto the canvas after resizing it to the dimensions set on the merger.
     /// # Arguments
     /// * `image` - The image to push onto the canvas. Its pixel type, `P`, must match the canvas.
-    fn push_resized(
-        &mut self,
-        image: &Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
-    );
+    fn push_resized(&mut self, image: &BufferedImage<P>);
 
     /// Bulk pushes N images onto the canvas after resizing them to the dimensions set on the merger.
     /// # Arguments
     /// * `images` - The images to push onto the canvas. Note that the argument type is `&[&Image<...>]`, the func does not need to take ownership of the images, it only needs to read them. The pixel type, `P`, of the images must match the canvas.
-    fn bulk_push_resized(
-        &mut self,
-        images: &[&Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>],
-    );
+    fn bulk_push_resized(&mut self, images: &[&BufferedImage<P>]);
 }

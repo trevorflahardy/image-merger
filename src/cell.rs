@@ -6,9 +6,9 @@ use std::{
     ops::Deref,
 };
 
-/// A struct that allows multible mutable references to an underlying image's data buffer. This is an
+/// A struct that allows multiple mutable references to an underlying image's data buffer. This is an
 /// unsafe struct and should only be used when no two items are trying to change the same place in the underlying
-/// image's data buffer. This struct is used to allow multible threads to write to the same image at the same time.
+/// image's data buffer. This struct is used to allow multiple threads to write to the same image at the same time.
 pub struct ImageCell<P: Pixel, U: image::GenericImage<Pixel = P>> {
     underlying: UnsafeCell<Image<P, U>>,
 }
@@ -38,7 +38,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
         unsafe { &mut *self.underlying.get() }
     }
 
-    /// Requests a handout at the given coordinates of the undelrying image. Can be be used to write
+    /// Requests a handout at the given coordinates of the underlying image. Can be be used to write
     /// to an underlying image buffer across threads without a mutable reference to the underlying image.
     /// # Safety
     /// This function is unsafe because it does not implement any thread safety via locks or anything else. It is up to the caller to ensure that
