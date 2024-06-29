@@ -18,7 +18,7 @@ fn main() -> () {
     // will represent our known image dimensions.
     let known_image = generate_known_image();
 
-    // Create an instane of our merger, this is what will manage the merging of our images. It takes one generic
+    // Create an instance of our merger, this is what will manage the merging of our images. It takes one generic
     // parameter, T, which denotes the type of pixel the canvas and pasted images have.
     let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
         (IMAGE_WIDTH, IMAGE_HEIGHT),
