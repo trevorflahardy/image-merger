@@ -88,24 +88,28 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use image::{ImageBuffer, Rgb};
+    use image::Rgba;
 
     #[test]
     fn test_resize_nearest_neighbor() {
-        let mut image = ImageBuffer::new(100, 100);
+        let mut image: Image<Rgba<u8>, _> = Image::new(100, 100);
         for i in 0..100 {
             for j in 0..100 {
-                image.put_pixel(i, j, Rgb([255, 0, 0]));
+                image.put_pixel(i, j, Rgba([255, 0, 0, 0]));
             }
         }
 
-        let image = Image::from(image);
-        let new_image = resize_nearest_neighbor(&image, 10, 10);
+        let fast_resized = resize_nearest_neighbor(&image, 50, 50);
+        let fast_resized_underlying = fast_resized.into_buffer();
 
-        for i in 0..10 {
-            for j in 0..10 {
-                assert_eq!(*new_image.get_pixel(i, j), Rgb([255, 0, 0]));
-            }
-        }
+        let image_underlying = image.clone();
+        let slow_resized = image::imageops::resize(
+            &image_underlying,
+            50,
+            50,
+            image::imageops::FilterType::Nearest,
+        );
+
+        assert_eq!(fast_resized_underlying, slow_resized);
     }
 }
