@@ -1,5 +1,9 @@
 use super::core::{Merger, Padding, Point};
-use crate::{cell::ImageCell, functions::paste, Image};
+use crate::{
+    cell::ImageCell,
+    functions::{paste, resize_nearest_neighbor},
+    Image, ResizableMerger,
+};
 
 use image::Pixel;
 use num_traits::Zero;
@@ -267,5 +271,41 @@ where
 
         self.last_pasted_index += images.len() as i32;
         self.num_images += images.len() as u32;
+    }
+}
+
+impl<P> ResizableMerger<P> for KnownSizeMerger<P, Vec<<P as Pixel>::Subpixel>>
+where
+    P: Pixel + Sync + Send,
+    <P as Pixel>::Subpixel: Sync + Send,
+{
+    fn push_resized(
+        &mut self,
+        image: &Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>,
+    ) {
+        let (width, height) = image.dimensions();
+        let resized = resize_nearest_neighbor(image, width, height);
+        self.push(&resized);
+    }
+
+    fn bulk_push_resized(
+        &mut self,
+        images: &[&Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>],
+    ) {
+        // Resize all the images in parallel then push them
+        let resized_images: Vec<Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>> =
+            images
+                .into_par_iter()
+                .map(|image| {
+                    let (width, height) = image.dimensions();
+                    resize_nearest_neighbor(image, width, height)
+                })
+                .collect();
+
+        // Convert Vec<T> to [&T] for the bulk push method
+        let resized_images_ref: Vec<&Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>> =
+            resized_images.iter().collect();
+
+        self.bulk_push(&resized_images_ref);
     }
 }
