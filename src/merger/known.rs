@@ -170,7 +170,7 @@ where
     /// # Arguments
     /// * `image_dimensions` - The dimensions of the images being pasted (images must be a uniform size)
     /// * `images_per_row` - The number of images per row.
-    /// * `total_images` - The total numbr of images to be in the final canvas.
+    /// * `total_images` - The total number of images to be in the final canvas.
     /// * `padding` - The padding between images, or None for no padding.
     pub fn new(
         image_dimensions: (u32, u32),
