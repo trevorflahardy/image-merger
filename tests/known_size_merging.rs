@@ -211,3 +211,50 @@ fn test_raw_known_size_merger_create() {
     assert_eq!(merger.get_canvas().width(), IMAGE_WIDTH * IMAGES_PER_ROW);
     assert_eq!(merger.get_canvas().height(), IMAGE_HEIGHT * TOTAL_ROWS);
 }
+
+#[test]
+fn test_resizable_known_size_merger() {
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+    );
+
+    // Create an image that is twice the size of the original image. Using a known
+    // resize function to ensure the image is resized correctly.
+    let test_square = image::imageops::resize(
+        &generate_test_square().into_buffer(),
+        IMAGE_WIDTH * 2,
+        IMAGE_HEIGHT * 2,
+        image::imageops::FilterType::Nearest,
+    );
+
+    // Push the image into the merger.
+    merger.push(&Image::from(test_square));
+
+    assert!(merger.get_num_images() == 1);
+}
+
+#[test]
+fn test_resizable_bulk_known_size_merger() {
+    let mut merger: KnownSizeMerger<Rgba<u8>, _> = KnownSizeMerger::new(
+        (IMAGE_WIDTH, IMAGE_HEIGHT),
+        IMAGES_PER_ROW,
+        TOTAL_IMAGES,
+        None,
+    );
+
+    // Create an image that is twice the size of the original image.
+    let test_square = image::imageops::resize(
+        &generate_test_square().into_buffer(),
+        IMAGE_WIDTH * 2,
+        IMAGE_HEIGHT * 2,
+        image::imageops::FilterType::Nearest,
+    );
+
+    // Push the image into the merger.
+    merger.bulk_push(&vec![&Image::from(test_square); 1]);
+
+    assert!(merger.get_num_images() == 1);
+}
