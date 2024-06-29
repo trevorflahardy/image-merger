@@ -42,6 +42,14 @@ pub fn paste<P, Container>(
         });
 }
 
+/// The library's underlying resize method. This is only used internally and should not be used by the user, but is exposed
+/// through the raw module for documentation purposes.
+/// # Arguments
+/// * `image` - The image to resize.
+/// * `nwidth` - The new width of the image.
+/// * `nheight` - The new height of the image.
+/// # Returns
+/// * A new image with the new dimensions. Note that the returned image's underlying buffer is not guaranteed to be the same as the input image's buffer. The returned buffer will be `Vec` based.
 pub fn resize_nearest_neighbor<P, U>(
     image: Image<P, U>,
     nwidth: u32,
