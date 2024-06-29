@@ -51,7 +51,7 @@ pub fn paste<P, Container>(
 /// # Returns
 /// * A new image with the new dimensions. Note that the returned image's underlying buffer is not guaranteed to be the same as the input image's buffer. The returned buffer will be `Vec` based.
 pub fn resize_nearest_neighbor<P, U>(
-    image: Image<P, U>,
+    image: &Image<P, U>,
     nwidth: u32,
     nheight: u32,
 ) -> Image<P, image::ImageBuffer<P, Vec<<P as Pixel>::Subpixel>>>
@@ -100,7 +100,7 @@ mod tests {
         }
 
         let image = Image::from(image);
-        let new_image = resize_nearest_neighbor(image, 10, 10);
+        let new_image = resize_nearest_neighbor(&image, 10, 10);
 
         for i in 0..10 {
             for j in 0..10 {
