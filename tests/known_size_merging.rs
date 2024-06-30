@@ -231,7 +231,7 @@ fn test_resizable_known_size_merger() {
     );
 
     // Push the image into the merger.
-    merger.push(&Image::from(test_square));
+    merger.push_resized(&Image::from(test_square));
 
     assert!(merger.get_num_images() == 1);
 }
@@ -254,7 +254,6 @@ fn test_resizable_bulk_known_size_merger() {
     );
 
     // Push the image into the merger.
-    merger.bulk_push(&vec![&Image::from(test_square); 1]);
-
-    assert!(merger.get_num_images() == 1);
+    merger.bulk_push_resized(&vec![&Image::from(test_square); TOTAL_IMAGES as usize]);
+    assert!(merger.get_num_images() == TOTAL_IMAGES);
 }

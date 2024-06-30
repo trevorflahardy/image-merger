@@ -280,7 +280,7 @@ where
     <P as Pixel>::Subpixel: Sync + Send,
 {
     fn push_resized(&mut self, image: &BufferedImage<P>) {
-        let (width, height) = image.dimensions();
+        let (width, height) = self.image_dimensions;
         let resized = resize_nearest_neighbor(image, width, height);
         self.push(&resized);
     }
@@ -290,8 +290,8 @@ where
         let resized_images: Vec<BufferedImage<P>> = images
             .into_par_iter()
             .map(|image| {
-                let (width, height) = image.dimensions();
-                resize_nearest_neighbor(image, width, height)
+                let (width, height) = self.image_dimensions;
+                return resize_nearest_neighbor(image, width, height);
             })
             .collect();
 
