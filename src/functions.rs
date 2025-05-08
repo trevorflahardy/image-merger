@@ -76,6 +76,12 @@ where
             let pixel = image.get_pixel(x, y);
 
             unsafe {
+                // SAFETY: Each thread is writing to a different pixel in the image.
+                // Two locations in memory will never be the same, so even through there may be (almost) concurrent
+                // access to the same memory location, the offsets of changes will be different.
+
+                // Does this run around the borrow checker and violate the entire point of the Rust language?
+                // Yes, but we're here for raw speed :)
                 let mut handout = cell.request_handout(i, j);
                 handout.unsafe_put_pixel(pixel)
             }
