@@ -116,26 +116,114 @@ mod tests {
     use super::*;
     use image::Rgba;
 
-    #[test]
-    fn test_resize_nearest_neighbor() {
-        let mut image: Image<Rgba<u8>, _> = Image::new(100, 100);
-        for i in 0..100 {
-            for j in 0..100 {
-                image.put_pixel(i, j, Rgba([255, 0, 0, 0]));
+    /// Builds an image in which no two pixels are alike, so that a resize which samples the wrong
+    /// place produces a different result. A solid colour cannot tell one sampling position from
+    /// another, and so cannot test a resize at all.
+    fn varied_image(width: u32, height: u32) -> BufferedImage<Rgba<u8>> {
+        let mut image: BufferedImage<Rgba<u8>> = Image::new(width, height);
+
+        for x in 0..width {
+            for y in 0..height {
+                image.put_pixel(
+                    x,
+                    y,
+                    Rgba([x as u8, y as u8, (x * 7 + y * 13) as u8, (x + y) as u8]),
+                );
             }
         }
 
-        let fast_resized = resize_nearest_neighbor(&image, 50, 50);
-        let fast_resized_underlying = fast_resized.into_buffer();
+        image
+    }
 
-        let image_underlying = image.clone();
-        let slow_resized = image::imageops::resize(
-            &image_underlying,
-            50,
-            50,
-            image::imageops::FilterType::Nearest,
+    /// Checks a resize against the sampling this crate performs, which takes the source pixel at
+    /// `floor(index * ratio)`.
+    ///
+    /// Note that this is not where the image crate's Nearest filter samples, which takes the pixel
+    /// nearest the centre of the destination pixel instead. The two agree only on a solid colour,
+    /// so the expected pixels are worked out from the ratios rather than by comparing against it.
+    fn assert_resizes_to(source: &BufferedImage<Rgba<u8>>, nwidth: u32, nheight: u32) {
+        let resized = resize_nearest_neighbor(source, nwidth, nheight);
+
+        assert_eq!(resized.width(), nwidth);
+        assert_eq!(resized.height(), nheight);
+
+        let width_ratio = source.width() as f32 / nwidth as f32;
+        let height_ratio = source.height() as f32 / nheight as f32;
+
+        for i in 0..nwidth {
+            for j in 0..nheight {
+                let x = (i as f32 * width_ratio) as u32;
+                let y = (j as f32 * height_ratio) as u32;
+
+                assert_eq!(
+                    resized.get_pixel(i, j),
+                    source.get_pixel(x, y),
+                    "pixel ({i}, {j}) of a {nwidth}x{nheight} resize sampled the wrong place"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_resize_nearest_neighbor() {
+        assert_resizes_to(&varied_image(100, 100), 50, 50);
+    }
+
+    #[test]
+    fn test_resize_nearest_neighbor_non_square() {
+        // A square resize hides a width and height that have been swapped, so both orientations
+        // are checked here.
+        assert_resizes_to(&varied_image(97, 43), 31, 67);
+        assert_resizes_to(&varied_image(43, 97), 67, 31);
+    }
+
+    #[test]
+    fn test_resize_nearest_neighbor_upscale_and_degenerate() {
+        assert_resizes_to(&varied_image(64, 48), 128, 96);
+        assert_resizes_to(&varied_image(7, 7), 1, 1);
+        assert_resizes_to(&varied_image(1, 1), 9, 9);
+        assert_resizes_to(&varied_image(256, 256), 255, 257);
+    }
+
+    #[test]
+    fn test_resize_nearest_neighbor_above_the_parallel_threshold() {
+        // Large enough that the resize is handed to more than one thread, which none of the
+        // smaller cases above are.
+        assert_resizes_to(&varied_image(1024, 1024), 512, 512);
+    }
+
+    #[test]
+    fn test_resize_nearest_neighbor_samples_the_start_of_each_block() {
+        // Written out by hand so that the expected pixels do not come from the same arithmetic the
+        // implementation uses. Halving a 4x4 image samples columns and rows 0 and 2.
+        let mut image: BufferedImage<Rgba<u8>> = Image::new(4, 4);
+        for x in 0..4 {
+            for y in 0..4 {
+                image.put_pixel(x, y, Rgba([((x * 10) + y) as u8, 0, 0, 255]));
+            }
+        }
+
+        let resized = resize_nearest_neighbor(&image, 2, 2);
+
+        assert_eq!(
+            resized.get_pixel(0, 0).0[0],
+            0,
+            "should sample source (0, 0)"
         );
-
-        assert_eq!(fast_resized_underlying, slow_resized);
+        assert_eq!(
+            resized.get_pixel(1, 0).0[0],
+            20,
+            "should sample source (2, 0)"
+        );
+        assert_eq!(
+            resized.get_pixel(0, 1).0[0],
+            2,
+            "should sample source (0, 2)"
+        );
+        assert_eq!(
+            resized.get_pixel(1, 1).0[0],
+            22,
+            "should sample source (2, 2)"
+        );
     }
 }

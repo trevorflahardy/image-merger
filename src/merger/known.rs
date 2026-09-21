@@ -145,11 +145,9 @@ where
     /// * `Some` - If the image was successfully removed.
     /// * `None` - If the image could not be removed. This will happen if the container is not large enough to fit the image.
     pub fn remove_image_raw(&mut self, index: u32, container: Container) -> Option<()> {
-        let offset_x = index % self.images_per_row;
-        let offset_y = index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
+        // The same coordinates the image was pasted at, which on a padded canvas is not simply the
+        // index multiplied by the image's dimensions.
+        let (x, y) = self.get_paste_coordinates_unchecked(index);
 
         let black_image =
             Image::new_from_raw(self.image_dimensions.0, self.image_dimensions.1, container);
@@ -214,17 +212,6 @@ where
         ];
 
         self.remove_image_raw(index, container).unwrap(); // Can always unwrap here because we know the buffer is the right size.
-
-        let offset_x = index % self.images_per_row;
-        let offset_y = index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
-
-        let black_image: BufferedImage<P> =
-            Image::new(self.image_dimensions.0, self.image_dimensions.1);
-
-        paste(&self.canvas, &black_image, Point { x, y });
     }
 }
 
