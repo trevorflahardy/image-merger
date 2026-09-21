@@ -24,7 +24,7 @@ pub struct Image<P: Pixel, U: image::GenericImage<Pixel = P>> {
 impl<P: Pixel, U: image::GenericImage<Pixel = P>> Image<P, U> {
     /// Returns the capacity of the underlying image's data buffer.
     pub fn capacity(&self) -> usize {
-        return self.underlying.pixels().count() * <P as Pixel>::CHANNEL_COUNT as usize;
+        self.underlying.pixels().count() * <P as Pixel>::CHANNEL_COUNT as usize
     }
 
     /// Consumes the image and returns the underlying image buffer.

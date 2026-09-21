@@ -59,7 +59,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
     /// let mut handout = unsafe { cell.request_handout(0, 0) };
     /// handout.put_pixel(Rgb([255, 255, 255]));
     /// ```
-    pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<P, U> {
+    pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<'_, P, U> {
         Handout { ic: self, x, y }
     }
 }

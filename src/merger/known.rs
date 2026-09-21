@@ -75,7 +75,7 @@ where
         padding: Option<Padding>,
         container: Container,
     ) -> Option<Self> {
-        let total_rows = (total_images + images_per_row - 1) / images_per_row;
+        let total_rows = total_images.div_ceil(images_per_row);
 
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
@@ -180,7 +180,7 @@ where
         total_images: u32,
         padding: Option<Padding>,
     ) -> Self {
-        let total_rows = (total_images + images_per_row - 1) / images_per_row;
+        let total_rows = total_images.div_ceil(images_per_row);
 
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
