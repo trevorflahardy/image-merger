@@ -55,7 +55,7 @@ where
     /// * `total_images` - The total number of images to be in the final canvas.
     /// * `padding` - The padding between images, or None for no padding.
     /// * `container` - The container to use for the underlying canvas. This container must be big enough to hold all the potential images
-    /// that will be pasted to the canvas.
+    ///   that will be pasted to the canvas.
     ///
     /// # Returns
     /// * `Some` - If the merger was successfully created.
@@ -139,7 +139,7 @@ where
     /// # Arguments
     /// * `index` - The index of the image to remove.
     /// * `container` - The container to use to replace the image. The container must be the same size as the image being removed,
-    /// thus, the container must be the same size as the image dimensions.
+    ///   thus, the container must be the same size as the image dimensions.
     ///
     /// # Returns
     /// * `Some` - If the image was successfully removed.
