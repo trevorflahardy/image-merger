@@ -55,7 +55,7 @@ where
     /// * `total_images` - The total number of images to be in the final canvas.
     /// * `padding` - The padding between images, or None for no padding.
     /// * `container` - The container to use for the underlying canvas. This container must be big enough to hold all the potential images
-    /// that will be pasted to the canvas.
+    ///   that will be pasted to the canvas.
     ///
     /// # Returns
     /// * `Some` - If the merger was successfully created.
@@ -75,7 +75,7 @@ where
         padding: Option<Padding>,
         container: Container,
     ) -> Option<Self> {
-        let total_rows = (total_images + images_per_row - 1) / images_per_row;
+        let total_rows = total_images.div_ceil(images_per_row);
 
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
@@ -139,17 +139,15 @@ where
     /// # Arguments
     /// * `index` - The index of the image to remove.
     /// * `container` - The container to use to replace the image. The container must be the same size as the image being removed,
-    /// thus, the container must be the same size as the image dimensions.
+    ///   thus, the container must be the same size as the image dimensions.
     ///
     /// # Returns
     /// * `Some` - If the image was successfully removed.
     /// * `None` - If the image could not be removed. This will happen if the container is not large enough to fit the image.
     pub fn remove_image_raw(&mut self, index: u32, container: Container) -> Option<()> {
-        let offset_x = index % self.images_per_row;
-        let offset_y = index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
+        // The same coordinates the image was pasted at, which on a padded canvas is not simply the
+        // index multiplied by the image's dimensions.
+        let (x, y) = self.get_paste_coordinates_unchecked(index);
 
         let black_image =
             Image::new_from_raw(self.image_dimensions.0, self.image_dimensions.1, container);
@@ -182,7 +180,7 @@ where
         total_images: u32,
         padding: Option<Padding>,
     ) -> Self {
-        let total_rows = (total_images + images_per_row - 1) / images_per_row;
+        let total_rows = total_images.div_ceil(images_per_row);
 
         let image_gaps_x = (images_per_row - 1) * padding.as_ref().map(|p| p.x).unwrap_or(0);
         let image_gaps_y = (total_rows - 1) * padding.as_ref().map(|p| p.y).unwrap_or(0);
@@ -214,17 +212,6 @@ where
         ];
 
         self.remove_image_raw(index, container).unwrap(); // Can always unwrap here because we know the buffer is the right size.
-
-        let offset_x = index % self.images_per_row;
-        let offset_y = index / self.images_per_row;
-
-        let x = offset_x * self.image_dimensions.0;
-        let y = offset_y * self.image_dimensions.1;
-
-        let black_image: BufferedImage<P> =
-            Image::new(self.image_dimensions.0, self.image_dimensions.1);
-
-        paste(&self.canvas, &black_image, Point { x, y });
     }
 }
 

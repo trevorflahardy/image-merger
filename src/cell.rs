@@ -3,7 +3,7 @@ use image::Pixel;
 use std::{
     cell::UnsafeCell,
     marker::{Send, Sync},
-    ops::Deref,
+    ops::{Deref, DerefMut},
 };
 
 /// A struct that allows multiple mutable references to an underlying image's data buffer. This is an
@@ -59,7 +59,7 @@ impl<P: Pixel, U: image::GenericImage<Pixel = P>> ImageCell<P, U> {
     /// let mut handout = unsafe { cell.request_handout(0, 0) };
     /// handout.put_pixel(Rgb([255, 255, 255]));
     /// ```
-    pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<P, U> {
+    pub unsafe fn request_handout(&self, x: u32, y: u32) -> Handout<'_, P, U> {
         Handout { ic: self, x, y }
     }
 }
@@ -92,5 +92,32 @@ impl<'a, P: Pixel, U: image::GenericImage<Pixel = P>> Handout<'a, P, U> {
     pub unsafe fn unsafe_put_pixel(&mut self, pixel: P) {
         let image = self.ic.get_image_mut();
         image.unsafe_put_pixel(self.x, self.y, pixel);
+    }
+}
+
+impl<'a, P, Container> Handout<'a, P, image::ImageBuffer<P, Container>>
+where
+    P: Pixel,
+    Container: DerefMut<Target = [P::Subpixel]>,
+{
+    /// Copies a run of subpixels into the underlying image, starting at the handout's coordinates
+    /// and continuing along the row. This is the bulk counterpart to `unsafe_put_pixel`, and lets a
+    /// whole row be moved with a single copy rather than one write per pixel.
+    ///
+    /// # Safety
+    /// This function is unsafe because it does not check bounds. It is up to the caller to ensure
+    /// that `row` holds a whole number of pixels and that it fits entirely inside the underlying
+    /// image's row beginning at the handout's coordinates.
+    ///
+    /// # Arguments
+    /// * `row` - The subpixels to copy, laid out as `CHANNEL_COUNT` subpixels per pixel.
+    pub unsafe fn unsafe_put_row(&mut self, row: &[P::Subpixel]) {
+        let image = self.ic.get_image_mut();
+
+        let width = image.width() as usize;
+        let offset =
+            ((self.y as usize * width) + self.x as usize) * <P as Pixel>::CHANNEL_COUNT as usize;
+
+        std::ptr::copy_nonoverlapping(row.as_ptr(), image.as_mut_ptr().add(offset), row.len());
     }
 }
