@@ -1,4 +1,4 @@
-use image::imageops::replace;
+use image::{imageops::replace, PixelWithColorType};
 use image_merger::*;
 
 static IMAGES_PER_ROW: u32 = 10;
@@ -55,6 +55,7 @@ fn merge_images_slow<P>(
 ) -> BufferedImage<P>
 where
     P: Pixel<Subpixel = u8> + 'static,
+    P: PixelWithColorType,
 {
     let (image_width, image_height) = image_dimensions;
     let total_images = images.len() as u32;
@@ -89,6 +90,7 @@ fn assert_merge_matches_slow<P>(
     padding: Option<Padding>,
 ) where
     P: Pixel<Subpixel = u8> + Sync + Send + PartialEq + std::fmt::Debug + 'static,
+    P: PixelWithColorType,
 {
     let images: Vec<BufferedImage<P>> = (0..total_images)
         .map(|index| generate_test_image::<P>(image_dimensions.0, image_dimensions.1, index))
